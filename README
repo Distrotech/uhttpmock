@@ -1,0 +1,35 @@
+uhttpmock
+=========
+
+uhttpmock is a project for mocking web service APIs which use HTTP or HTTPS. It
+provides a library, libuhttpmock, which implements recording and playback of
+HTTP request–response traces.
+
+See the test programs in libuhttpmock/tests/ for simple examples of how to use
+the code.
+
+libuhttpmock’s API is currently unstable and is likely to change wildly.
+
+Dependencies
+============
+
+ • glib-2.0 ≥ 2.31.0
+ • gio-2.0 ≥ 2.17.3
+ • libsoup-2.4 ≥ 2.37.91
+
+Deprecation guards
+==================
+
+If LIBUHTTPMOCK_DISABLE_DEPRECATED is defined when compiling against
+libuhttpmock, all deprecated API will be removed from included headers.
+
+Licensing
+=========
+
+libuhttpmock is licensed under the LGPL; see COPYING.LIB for more details.
+
+Contact
+=======
+
+Philip Withnall <philip@tecnocode.co.uk>
+http://live.gnome.org/libuhttpmock

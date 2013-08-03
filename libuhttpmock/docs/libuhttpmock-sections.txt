@@ -1,0 +1,66 @@
+<SECTION>
+<FILE>uhm-version</FILE>
+<TITLE>Version Information</TITLE>
+UHM_MAJOR_VERSION
+UHM_MINOR_VERSION
+UHM_MICRO_VERSION
+UHM_CHECK_VERSION
+</SECTION>
+
+<SECTION>
+<FILE>uhm-server</FILE>
+<TITLE>UhmServer</TITLE>
+UhmServer
+UhmServerClass
+uhm_server_new
+uhm_server_run
+uhm_server_stop
+uhm_server_start_trace
+uhm_server_start_trace_full
+uhm_server_end_trace
+uhm_server_load_trace
+uhm_server_load_trace_async
+uhm_server_load_trace_finish
+uhm_server_unload_trace
+uhm_server_received_message_chunk
+uhm_server_get_enable_logging
+uhm_server_set_enable_logging
+uhm_server_get_enable_online
+uhm_server_set_enable_online
+uhm_server_get_trace_directory
+uhm_server_set_trace_directory
+uhm_server_get_address
+uhm_server_get_port
+uhm_server_get_resolver
+<SUBSECTION Standard>
+UHM_SERVER
+UHM_IS_SERVER
+UHM_TYPE_SERVER
+uhm_server_get_type
+UHM_SERVER_GET_CLASS
+UHM_SERVER_CLASS
+UHM_IS_SERVER_CLASS
+<SUBSECTION Private>
+UhmServerPrivate
+</SECTION>
+
+<SECTION>
+<FILE>uhm-resolver</FILE>
+<TITLE>UhmResolver</TITLE>
+UhmResolver
+UhmResolverClass
+uhm_resolver_new
+uhm_resolver_reset
+uhm_resolver_add_A
+uhm_resolver_add_SRV
+<SUBSECTION Standard>
+UHM_RESOLVER
+UHM_IS_RESOLVER
+UHM_TYPE_RESOLVER
+uhm_resolver_get_type
+UHM_RESOLVER_GET_CLASS
+UHM_RESOLVER_CLASS
+UHM_IS_RESOLVER_CLASS
+<SUBSECTION Private>
+UhmResolverPrivate
+</SECTION>
