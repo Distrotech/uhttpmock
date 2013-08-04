@@ -23,7 +23,7 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_SRCS = \
 	$(NULL)
 
-TEST_PROGS += general
-general_SOURCES = general.c $(TEST_SRCS)
+TEST_PROGS += server
+server_SOURCES = server.c $(TEST_SRCS)
 
 -include $(top_srcdir)/git.mk

@@ -1,0 +1,20 @@
+> GET /test-file HTTP/1.1
+> Host: example.com
+> Accept-Encoding: gzip, deflate
+> Connection: Keep-Alive
+  
+< HTTP/1.1 404 Not Found
+< Content-Type: text/plain; charset=UTF-8
+< Expires: Tue, 30 Jul 2013 14:51:48 GMT
+< Date: Tue, 30 Jul 2013 14:51:48 GMT
+< Cache-control: private, max-age=0, must-revalidate, no-transform
+< Vary: Accept
+< ETag: W/"D04ESXg7eCt7ImA9WhFWEUQ."
+< X-Content-Type-Options: nosniff
+< X-Frame-Options: SAMEORIGIN
+< X-XSS-Protection: 1; mode=block
+< Server: GSE
+< Transfer-Encoding: chunked
+< 
+< The document was not found. Ha.
+  
