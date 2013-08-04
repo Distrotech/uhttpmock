@@ -171,7 +171,7 @@ static void
 test_server_properties_address (void)
 {
 	UhmServer *server;
-	SoupAddress *address;
+	gchar *address;
 
 	server = uhm_server_new ();
 
@@ -247,7 +247,7 @@ set_up_logging (LoggingData *data, gconstpointer user_data)
 	uhm_server_run (data->server);
 
 	resolver = uhm_server_get_resolver (data->server);
-	uhm_resolver_add_A (resolver, "example.com", soup_address_get_physical (uhm_server_get_address (data->server)));
+	uhm_resolver_add_A (resolver, "example.com", uhm_server_get_address (data->server));
 
 	data->session = soup_session_new_with_options (SOUP_SESSION_SSL_STRICT, FALSE, NULL);
 }

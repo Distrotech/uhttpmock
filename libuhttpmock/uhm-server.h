@@ -96,7 +96,7 @@ void uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging);
 
 void uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length);
 
-SoupAddress *uhm_server_get_address (UhmServer *self);
+const gchar *uhm_server_get_address (UhmServer *self);
 guint uhm_server_get_port (UhmServer *self);
 
 UhmResolver *uhm_server_get_resolver (UhmServer *self) G_GNUC_WARN_UNUSED_RESULT;

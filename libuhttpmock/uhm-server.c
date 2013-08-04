@@ -177,7 +177,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * UhmServer:address:
 	 *
 	 * Address of the local mock server if it's running, or %NULL otherwise. This will be non-%NULL between calls to uhm_server_run() and
-	 * uhm_server_stop().
+	 * uhm_server_stop(). The address is a physical IP address, e.g. <code class="literal">127.0.0.1</code>.
 	 *
 	 * This should not normally need to be passed into client code under test, unless the code references IP addresses specifically. The mock server
 	 * runs a DNS resolver which automatically redirects client requests for known domain names to this address (#UhmServer:resolver).
@@ -185,9 +185,9 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * Since: UNRELEASED
 	 */
 	g_object_class_install_property (gobject_class, PROP_ADDRESS,
-	                                 g_param_spec_object ("address",
+	                                 g_param_spec_string ("address",
 	                                                      "Server Address", "Address of the local mock server if it's running.",
-	                                                      SOUP_TYPE_ADDRESS,
+	                                                      NULL,
 	                                                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -289,7 +289,11 @@ uhm_server_get_property (GObject *object, guint property_id, GValue *value, GPar
 			g_value_set_boolean (value, priv->enable_logging);
 			break;
 		case PROP_ADDRESS:
-			g_value_set_object (value, priv->address);
+			if (priv->address == NULL) {
+				g_value_set_string (value, NULL);
+			} else {
+				g_value_set_string (value, soup_address_get_physical (priv->address));
+			}
 			break;
 		case PROP_PORT:
 			g_value_set_uint (value, priv->port);
@@ -1672,16 +1676,20 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
  *
  * Gets the value of the #UhmServer:address property.
  *
- * Return value: (allow-none) (transfer none): the address of the listening socket the server is currently bound to; or %NULL if the server is not running
+ * Return value: (allow-none) (transfer none): the physical address of the listening socket the server is currently bound to; or %NULL if the server is not running
  *
  * Since: UNRELEASED
  */
-SoupAddress *
+const gchar *
 uhm_server_get_address (UhmServer *self)
 {
 	g_return_val_if_fail (UHM_IS_SERVER (self), NULL);
 
-	return self->priv->address;
+	if (self->priv->address == NULL) {
+		return NULL;
+	}
+
+	return soup_address_get_physical (self->priv->address);
 }
 
 /**
