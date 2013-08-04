@@ -409,12 +409,26 @@ header_append_cb (const gchar *name, const gchar *value, gpointer user_data)
 }
 
 static void
+server_response_append_headers (UhmServer *self, SoupMessage *message)
+{
+	UhmServerPrivate *priv = self->priv;
+	gchar *trace_file_name, *trace_file_offset;
+
+	trace_file_name = g_file_get_uri (priv->trace_file);
+	soup_message_headers_append (message->response_headers, "X-Mock-Trace-File", trace_file_name);
+	g_free (trace_file_name);
+
+	trace_file_offset = g_strdup_printf ("%u", priv->message_counter);
+	soup_message_headers_append (message->response_headers, "X-Mock-Trace-File-Offset", trace_file_offset);
+	g_free (trace_file_offset);
+}
+
+static void
 server_process_message (UhmServer *self, SoupMessage *message, SoupClientContext *client)
 {
 	UhmServerPrivate *priv = self->priv;
 	SoupBuffer *message_body;
 	goffset expected_content_length;
-	gchar *trace_file_name, *trace_file_offset;
 
 	g_assert (priv->next_message != NULL);
 	priv->message_counter++;
@@ -432,6 +446,8 @@ server_process_message (UhmServer *self, SoupMessage *message, SoupClientContext
 		g_free (next_uri);
 		soup_message_body_append_take (message->response_body, (guchar *) body, strlen (body));
 
+		server_response_append_headers (self, message);
+
 		return;
 	}
 
@@ -441,13 +457,7 @@ server_process_message (UhmServer *self, SoupMessage *message, SoupClientContext
 	soup_message_headers_foreach (priv->next_message->response_headers, header_append_cb, message);
 
 	/* Add debug headers to identify the message and trace file. */
-	trace_file_name = g_file_get_uri (priv->trace_file);
-	soup_message_headers_append (message->response_headers, "X-Mock-Trace-File", trace_file_name);
-	g_free (trace_file_name);
-
-	trace_file_offset = g_strdup_printf ("%u", priv->message_counter);
-	soup_message_headers_append (message->response_headers, "X-Mock-Trace-File-Offset", trace_file_offset);
-	g_free (trace_file_offset);
+	server_response_append_headers (self, message);
 
 	message_body = soup_message_body_flatten (priv->next_message->response_body);
 	if (message_body->length > 0) {
@@ -521,6 +531,8 @@ real_handle_message (UhmServer *self, SoupMessage *message, SoupClientContext *c
 			handled = TRUE;
 
 			g_error_free (child_error);
+
+			server_response_append_headers (self, message);
 		} else if (priv->next_message == NULL) {
 			gchar *body, *actual_uri;
 
@@ -532,6 +544,8 @@ real_handle_message (UhmServer *self, SoupMessage *message, SoupClientContext *c
 			g_free (actual_uri);
 			soup_message_body_append_take (message->response_body, (guchar *) body, strlen (body));
 			handled = TRUE;
+
+			server_response_append_headers (self, message);
 		}
 	}
 
