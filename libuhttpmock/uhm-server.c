@@ -71,6 +71,10 @@ static GFileInputStream *load_file_stream (GFile *trace_file, GCancellable *canc
 static SoupMessage *load_file_iteration (GFileInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error);
 
 struct _UhmServerPrivate {
+	/* UhmServer is based around HTTP/HTTPS, and cannot be extended to support other application-layer protocols.
+	 * If libuhttpmock is extended to support other protocols (e.g. IMAP) in future, a new UhmImapServer should be
+	 * created. It may be possible to share code with UhmServer, but the APIs for the two would be sufficiently
+	 * different to not be mergeable. */
 	SoupServer *server;
 	UhmResolver *resolver;
 	GThread *server_thread;
