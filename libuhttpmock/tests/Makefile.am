@@ -26,4 +26,15 @@ TEST_SRCS = \
 TEST_PROGS += server
 server_SOURCES = server.c $(TEST_SRCS)
 
+EXTRA_DIST += \
+	cert.pem \
+	key.pem \
+	\
+	server_logging_trace_failure_method \
+	server_logging_trace_failure_unexpected-request \
+	server_logging_trace_failure_uri \
+	server_logging_trace_success_multiple-messages \
+	server_logging_trace_success_normal \
+	$(NULL)
+
 -include $(top_srcdir)/git.mk

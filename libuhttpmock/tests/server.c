@@ -293,7 +293,7 @@ server_logging_no_trace_success_cb (LoggingData *data)
 	return FALSE;
 }
 
-/* TODO */
+/* Test a server in onling/logging mode returning a success response from a custom signal handler. */
 static void
 test_server_logging_no_trace_success (LoggingData *data, gconstpointer user_data)
 {
@@ -332,7 +332,7 @@ server_logging_no_trace_failure_cb (LoggingData *data)
 	return FALSE;
 }
 
-/* TODO */
+/* Test a server in onling/logging mode returning a failure response from a custom signal handler. */
 static void
 test_server_logging_no_trace_failure (LoggingData *data, gconstpointer user_data)
 {
@@ -341,7 +341,7 @@ test_server_logging_no_trace_failure (LoggingData *data, gconstpointer user_data
 }
 
 static gboolean
-server_logging_trace_success_cb (LoggingData *data)
+server_logging_trace_success_normal_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
@@ -349,7 +349,7 @@ server_logging_trace_success_cb (LoggingData *data)
 	GError *child_error = NULL;
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_success"); /* FIXME */
+	trace_file = g_file_new_for_path ("server_logging_trace_success_normal"); /* FIXME */
 	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
 	g_assert_no_error (child_error);
 	g_object_unref (trace_file);
@@ -369,11 +369,60 @@ server_logging_trace_success_cb (LoggingData *data)
 	return FALSE;
 }
 
-/* TODO */
+/* Test a server in onling/logging mode returning a success response from a single-message trace. */
 static void
-test_server_logging_trace_success (LoggingData *data, gconstpointer user_data)
+test_server_logging_trace_success_normal (LoggingData *data, gconstpointer user_data)
 {
-	g_idle_add ((GSourceFunc) server_logging_trace_success_cb, data);
+	g_idle_add ((GSourceFunc) server_logging_trace_success_normal_cb, data);
+	g_main_loop_run (data->main_loop);
+}
+
+static gboolean
+server_logging_trace_success_multiple_messages_cb (LoggingData *data)
+{
+	SoupMessage *message;
+	SoupURI *uri;
+	GFile *trace_file;
+	GError *child_error = NULL;
+	guint i;
+	SoupKnownStatusCode expected_status_codes[] = {
+		SOUP_STATUS_OK,
+		SOUP_STATUS_OK,
+		SOUP_STATUS_NOT_FOUND,
+	};
+
+	/* Load the trace. */
+	trace_file = g_file_new_for_path ("server_logging_trace_success_multiple-messages"); /* FIXME */
+	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
+	g_assert_no_error (child_error);
+	g_object_unref (trace_file);
+
+	/* Dummy unit test code. Send three messages. */
+	for (i = 0; i < G_N_ELEMENTS (expected_status_codes); i++) {
+		gchar *uri_string;
+
+		uri_string = g_strdup_printf ("https://example.com/test-file%u", i);
+		uri = soup_uri_new (uri_string);
+		soup_uri_set_port (uri, uhm_server_get_port (data->server));
+		g_free (uri_string);
+
+		message = soup_message_new_from_uri (SOUP_METHOD_GET, uri);
+		g_assert_cmpuint (soup_session_send_message (data->session, message), ==, expected_status_codes[i]);
+
+		soup_uri_free (uri);
+		g_object_unref (message);
+	}
+
+	g_main_loop_quit (data->main_loop);
+
+	return FALSE;
+}
+
+/* Test a server in onling/logging mode returning several responses from a multi-message trace. */
+static void
+test_server_logging_trace_success_multiple_messages (LoggingData *data, gconstpointer user_data)
+{
+	g_idle_add ((GSourceFunc) server_logging_trace_success_multiple_messages_cb, data);
 	g_main_loop_run (data->main_loop);
 }
 
@@ -413,11 +462,99 @@ server_logging_trace_failure_method_cb (LoggingData *data)
 	return FALSE;
 }
 
-/* TODO */
+/* Test a server in onling/logging mode returning a non-matching response from a trace, not matching by method. */
 static void
 test_server_logging_trace_failure_method (LoggingData *data, gconstpointer user_data)
 {
 	g_idle_add ((GSourceFunc) server_logging_trace_failure_method_cb, data);
+	g_main_loop_run (data->main_loop);
+}
+
+static gboolean
+server_logging_trace_failure_uri_cb (LoggingData *data)
+{
+	SoupMessage *message;
+	SoupURI *uri;
+	GFile *trace_file;
+	GError *child_error = NULL;
+
+	/* Load the trace. */
+	trace_file = g_file_new_for_path ("server_logging_trace_failure_uri"); /* FIXME */
+	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
+	g_assert_no_error (child_error);
+	g_object_unref (trace_file);
+
+	/* Dummy unit test code. */
+	uri = soup_uri_new ("https://example.com/test-file-wrong-uri"); /* Note: wrong URI */
+	soup_uri_set_port (uri, uhm_server_get_port (data->server));
+	message = soup_message_new_from_uri (SOUP_METHOD_GET, uri);
+	soup_uri_free (uri);
+
+	g_assert_cmpuint (soup_session_send_message (data->session, message), ==, SOUP_STATUS_BAD_REQUEST);
+	g_assert_cmpstr (message->response_body->data, !=, "The document was not found. Ha.");
+	g_assert_cmpstr (message->response_body->data, ==, "Expected GET URI ‘/test-file’, but got GET ‘/test-file-wrong-uri’.");
+	if (strstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File"), "server_logging_trace_failure_uri") == NULL) {
+		/* Report the error. */
+		g_assert_cmpstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File"), ==, "server_logging_trace_failure_uri");
+	}
+	g_assert_cmpstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File-Offset"), ==, "1");
+
+	g_object_unref (message);
+
+	g_main_loop_quit (data->main_loop);
+
+	return FALSE;
+}
+
+/* Test a server in onling/logging mode returning a non-matching response from a trace, not matching by URI. */
+static void
+test_server_logging_trace_failure_uri (LoggingData *data, gconstpointer user_data)
+{
+	g_idle_add ((GSourceFunc) server_logging_trace_failure_uri_cb, data);
+	g_main_loop_run (data->main_loop);
+}
+
+static gboolean
+server_logging_trace_failure_unexpected_request_cb (LoggingData *data)
+{
+	SoupMessage *message;
+	SoupURI *uri;
+	GFile *trace_file;
+	GError *child_error = NULL;
+
+	/* Load the trace. */
+	trace_file = g_file_new_for_path ("server_logging_trace_failure_unexpected-request"); /* FIXME */
+	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
+	g_assert_no_error (child_error);
+	g_object_unref (trace_file);
+
+	/* Dummy unit test code. */
+	uri = soup_uri_new ("https://example.com/test-file-unexpected"); /* Note: unexpected request; not in the trace file */
+	soup_uri_set_port (uri, uhm_server_get_port (data->server));
+	message = soup_message_new_from_uri (SOUP_METHOD_GET, uri);
+	soup_uri_free (uri);
+
+	g_assert_cmpuint (soup_session_send_message (data->session, message), ==, SOUP_STATUS_BAD_REQUEST);
+	g_assert_cmpstr (message->response_body->data, !=, "The document was not found. Ha.");
+	g_assert_cmpstr (message->response_body->data, ==, "Expected no request, but got GET ‘/test-file-unexpected’.");
+	if (strstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File"), "server_logging_trace_failure_unexpected-request") == NULL) {
+		/* Report the error. */
+		g_assert_cmpstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File"), ==, "server_logging_trace_failure_unexpected-request");
+	}
+	g_assert_cmpstr (soup_message_headers_get_one (message->response_headers, "X-Mock-Trace-File-Offset"), ==, "0");
+
+	g_object_unref (message);
+
+	g_main_loop_quit (data->main_loop);
+
+	return FALSE;
+}
+
+/* Test a server in onling/logging mode by making a request which doesn't exist in the trace file. */
+static void
+test_server_logging_trace_failure_unexpected_request (LoggingData *data, gconstpointer user_data)
+{
+	g_idle_add ((GSourceFunc) server_logging_trace_failure_unexpected_request_cb, data);
 	g_main_loop_run (data->main_loop);
 }
 
@@ -445,10 +582,16 @@ main (int argc, char *argv[])
 	            set_up_logging, test_server_logging_no_trace_success, tear_down_logging);
 	g_test_add ("/server/logging/no-trace/failure", LoggingData, server_logging_no_trace_failure_handle_message_cb,
 	            set_up_logging, test_server_logging_no_trace_failure, tear_down_logging);
-	g_test_add ("/server/logging/trace/success", LoggingData, NULL,
-	            set_up_logging, test_server_logging_trace_success, tear_down_logging);
+	g_test_add ("/server/logging/trace/success/normal", LoggingData, NULL,
+	            set_up_logging, test_server_logging_trace_success_normal, tear_down_logging);
+	g_test_add ("/server/logging/trace/success/multiple-messages", LoggingData, NULL,
+	            set_up_logging, test_server_logging_trace_success_multiple_messages, tear_down_logging);
 	g_test_add ("/server/logging/trace/failure/method", LoggingData, NULL,
 	            set_up_logging, test_server_logging_trace_failure_method, tear_down_logging);
+	g_test_add ("/server/logging/trace/failure/uri", LoggingData, NULL,
+	            set_up_logging, test_server_logging_trace_failure_uri, tear_down_logging);
+	g_test_add ("/server/logging/trace/failure/unexpected-request", LoggingData, NULL,
+	            set_up_logging, test_server_logging_trace_failure_unexpected_request, tear_down_logging);
 
 	return g_test_run ();
 }
