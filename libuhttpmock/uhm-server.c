@@ -31,7 +31,7 @@
  * to expecting the next request in the trace file.
  *
  * The mock server currently only operates on a single network interface, on HTTPS only. This may change in future. A dummy TLS certificate is used
- * to authenticate the server. This certificate is not signed by a CA, so the SoupSession:ssl-strict property must be set to %FALSE in client code
+ * to authenticate the server. This certificate is not signed by a CA, so the #SoupSession:ssl-strict property must be set to %FALSE in client code
  * during (and only during!) testing.
  *
  * The server can operate in three modes: logging, testing, and comparing. These are set by #UhmServer:enable-logging and #UhmServer:enable-online.
