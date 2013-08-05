@@ -40,7 +40,7 @@ SOUP_REQS=2.37.91
 #  3. If any interfaces have been added since the last public release, then increment age.
 #  4. If any interfaces have been removed or changed since the last public release, then set age to 0.
 UHM_LT_VERSION=0:0:0
-AC_SUBST(UHM_LT_VERSION)
+AC_SUBST([UHM_LT_VERSION])
 
 UHM_VERSION_MAJOR=uhm_version_major
 UHM_VERSION_MINOR=uhm_version_minor
@@ -48,12 +48,12 @@ UHM_VERSION_MICRO=uhm_version_micro
 UHM_API_VERSION=uhm_api_version_major.uhm_api_version_minor
 UHM_API_VERSION_MAJOR=uhm_api_version_major
 UHM_API_VERSION_MINOR=uhm_api_version_minor
-AC_SUBST(UHM_VERSION_MAJOR)
-AC_SUBST(UHM_VERSION_MINOR)
-AC_SUBST(UHM_VERSION_MICRO)
-AC_SUBST(UHM_API_VERSION)
-AC_SUBST(UHM_API_VERSION_MAJOR)
-AC_SUBST(UHM_API_VERSION_MINOR)
+AC_SUBST([UHM_VERSION_MAJOR])
+AC_SUBST([UHM_VERSION_MINOR])
+AC_SUBST([UHM_VERSION_MICRO])
+AC_SUBST([UHM_API_VERSION])
+AC_SUBST([UHM_API_VERSION_MAJOR])
+AC_SUBST([UHM_API_VERSION_MINOR])
 
 UHM_PACKAGES_PUBLIC="gobject-2.0 glib-2.0 >= $GLIB_REQS gio-2.0 >= $GIO_REQS libsoup-2.4 >= $SOUP_REQS"
 UHM_PACKAGES_PRIVATE="gthread-2.0"
@@ -63,8 +63,6 @@ AC_SUBST([UHM_PACKAGES_PRIVATE])
 AC_SUBST([UHM_PACKAGES])
 
 PKG_CHECK_MODULES(UHM, [$UHM_PACKAGES])
-AC_SUBST(UHM_CFLAGS)
-AC_SUBST(UHM_LIBS)
 
 # Code coverage
 GNOME_CODE_COVERAGE
