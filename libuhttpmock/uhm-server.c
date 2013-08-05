@@ -42,7 +42,7 @@
  *  • Comparing mode (#UhmServer:enable-logging: %FALSE, #UhmServer:enable-online: %TRUE): Requests are sent to the real server online, and
  *    the request–response pairs are compared against those in an existing log file to see if the log file is up-to-date.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 
 #include <glib.h>
@@ -154,7 +154,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * Directory relative to which all trace files specified in calls to uhm_server_start_trace() will be resolved.
 	 * This is not used for any other methods, but must be non-%NULL if uhm_server_start_trace() is called.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_TRACE_DIRECTORY,
 	                                 g_param_spec_object ("trace-directory",
@@ -168,7 +168,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * %TRUE if network traffic should reach the Internet as normal; %FALSE to redirect it to the local mock server.
 	 * Use this in conjunction with #UhmServer:enable-logging to either log online traffic, or replay logged traffic locally.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_ENABLE_ONLINE,
 	                                 g_param_spec_boolean ("enable-online",
@@ -183,7 +183,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * of whether traffic is online or being handled locally by the mock server.
 	 * Use this in conjunction with #UhmServer:enable-online to either log online traffic, or replay logged traffic locally.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_ENABLE_LOGGING,
 	                                 g_param_spec_boolean ("enable-logging",
@@ -200,7 +200,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * This should not normally need to be passed into client code under test, unless the code references IP addresses specifically. The mock server
 	 * runs a DNS resolver which automatically redirects client requests for known domain names to this address (#UhmServer:resolver).
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_ADDRESS,
 	                                 g_param_spec_string ("address",
@@ -217,7 +217,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * It is intended that this port be passed into the client code under test, to substitute for the default HTTPS port (443) which it would otherwise
 	 * use.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_PORT,
 	                                 g_param_spec_uint ("port",
@@ -235,7 +235,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * to the resolver will be rejected by the mock server. The set of domain names in the resolver will be reset when uhm_server_stop() is
 	 * called.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_RESOLVER,
 	                                 g_param_spec_object ("resolver",
@@ -258,7 +258,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * calling uhm_server_set_default_tls_certificate(). This may be used as the #UhmServer:tls-certificate if the code under test has no specific
 	 * requirements of the certificate used by the mock server it's tested against.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	g_object_class_install_property (gobject_class, PROP_TLS_CERTIFICATE,
 	                                 g_param_spec_object ("tls-certificate",
@@ -278,7 +278,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 *
 	 * Signal handlers should return %TRUE if they have handled the request and set an appropriate response; and %FALSE otherwise.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	signals[SIGNAL_HANDLE_MESSAGE] = g_signal_new ("handle-message", G_OBJECT_CLASS_TYPE (klass), G_SIGNAL_RUN_LAST,
 	                                               G_STRUCT_OFFSET (UhmServerClass, handle_message),
@@ -301,7 +301,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	 * Signal handlers should return %TRUE if the messages match; and %FALSE otherwise. The first signal handler executed when
 	 * this signal is emitted wins.
 	 *
-	 * Since: UNRELEASED
+	 * Since: 0.1.0
 	 */
 	signals[SIGNAL_COMPARE_MESSAGES] = g_signal_new ("compare-messages", G_OBJECT_CLASS_TYPE (klass), G_SIGNAL_RUN_LAST,
 	                                               G_STRUCT_OFFSET (UhmServerClass, compare_messages),
@@ -650,7 +650,7 @@ real_handle_message (UhmServer *self, SoupMessage *message, SoupClientContext *c
  *
  * Return value: (transfer full): a new #UhmServer; unref with g_object_unref()
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 UhmServer *
 uhm_server_new (void)
@@ -1069,7 +1069,7 @@ load_file_iteration_thread_cb (GTask *task, gpointer source_object, gpointer tas
  *
  * Unloads the current trace file of network messages, as loaded by uhm_server_load_trace() or uhm_server_load_trace_async().
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_unload_trace (UhmServer *self)
@@ -1101,7 +1101,7 @@ uhm_server_unload_trace (UhmServer *self)
  *
  * On error, @error will be set and the state of the #UhmServer will not change.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_load_trace (UhmServer *self, GFile *trace_file, GCancellable *cancellable, GError **error)
@@ -1190,7 +1190,7 @@ load_trace_async_cb (GObject *source_object, GAsyncResult *result, gpointer user
  *
  * Asynchronous version of uhm_server_load_trace(). In @callback, call uhm_server_load_trace_finish() to complete the operation.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_load_trace_async (UhmServer *self, GFile *trace_file, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -1226,7 +1226,7 @@ uhm_server_load_trace_async (UhmServer *self, GFile *trace_file, GCancellable *c
  *
  * On error, @error will be set and the state of the #UhmServer will not change.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_load_trace_finish (UhmServer *self, GAsyncResult *result, GError **error)
@@ -1267,7 +1267,7 @@ server_thread_cb (gpointer user_data)
  *
  * This function always succeeds.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_run (UhmServer *self)
@@ -1333,7 +1333,7 @@ uhm_server_run (UhmServer *self)
  *
  * This function always succeeds.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_stop (UhmServer *self)
@@ -1373,7 +1373,7 @@ uhm_server_stop (UhmServer *self)
  *
  * Return value: (allow-none) (transfer none): the directory to load/store trace files from, or %NULL
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 GFile *
 uhm_server_get_trace_directory (UhmServer *self)
@@ -1390,7 +1390,7 @@ uhm_server_get_trace_directory (UhmServer *self)
  *
  * Sets the value of the #UhmServer:trace-directory property.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_set_trace_directory (UhmServer *self, GFile *trace_directory)
@@ -1420,7 +1420,7 @@ uhm_server_set_trace_directory (UhmServer *self, GFile *trace_directory)
  *
  * On failure, @error will be set and the #UhmServer state will remain unchanged.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_start_trace (UhmServer *self, const gchar *trace_name, GError **error)
@@ -1455,7 +1455,7 @@ uhm_server_start_trace (UhmServer *self, const gchar *trace_name, GError **error
  *
  * On failure, @error will be set and the #UhmServer state will remain unchanged.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_start_trace_full (UhmServer *self, GFile *trace_file, GError **error)
@@ -1537,7 +1537,7 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file, GError **error)
  *
  * If #UhmServer:enable-online is %FALSE, this will shut down the mock server (as if uhm_server_stop() had been called).
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_end_trace (UhmServer *self)
@@ -1565,7 +1565,7 @@ uhm_server_end_trace (UhmServer *self)
  *
  * Return value: %TRUE if the server does not intercept and handle network connections from client code; %FALSE otherwise
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 gboolean
 uhm_server_get_enable_online (UhmServer *self)
@@ -1582,7 +1582,7 @@ uhm_server_get_enable_online (UhmServer *self)
  *
  * Sets the value of the #UhmServer:enable-online property.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_set_enable_online (UhmServer *self, gboolean enable_online)
@@ -1601,7 +1601,7 @@ uhm_server_set_enable_online (UhmServer *self, gboolean enable_online)
  *
  * Return value: %TRUE if client network traffic is being logged to a trace file; %FALSE otherwise
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 gboolean
 uhm_server_get_enable_logging (UhmServer *self)
@@ -1618,7 +1618,7 @@ uhm_server_get_enable_logging (UhmServer *self)
  *
  * Sets the value of the #UhmServer:enable-logging property.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging)
@@ -1646,7 +1646,7 @@ uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging)
  * comparison mode and the received message chunk corresponds to an unexpected message in the trace file, a %UHM_SERVER_ERROR will
  * be returned.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length, GError **error)
@@ -1778,7 +1778,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
  *
  * Return value: (allow-none) (transfer none): the physical address of the listening socket the server is currently bound to; or %NULL if the server is not running
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 const gchar *
 uhm_server_get_address (UhmServer *self)
@@ -1800,7 +1800,7 @@ uhm_server_get_address (UhmServer *self)
  *
  * Return value: the port of the listening socket the server is currently bound to; or <code class="literal">0</code> if the server is not running
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 guint
 uhm_server_get_port (UhmServer *self)
@@ -1818,7 +1818,7 @@ uhm_server_get_port (UhmServer *self)
  *
  * Return value: (allow-none) (transfer none): the mock resolver in use by the mock server, or %NULL if no resolver is active
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 UhmResolver *
 uhm_server_get_resolver (UhmServer *self)
@@ -1836,7 +1836,7 @@ uhm_server_get_resolver (UhmServer *self)
  *
  * Return value: (transfer none) (allow-none): the server's current TLS certificate; or %NULL if it's serving HTTP only
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 GTlsCertificate *
 uhm_server_get_tls_certificate (UhmServer *self)
@@ -1853,7 +1853,7 @@ uhm_server_get_tls_certificate (UhmServer *self)
  *
  * Sets the value of the #UhmServer:tls-certificate property.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 void
 uhm_server_set_tls_certificate (UhmServer *self, GTlsCertificate *tls_certificate)
@@ -1885,7 +1885,7 @@ uhm_server_set_tls_certificate (UhmServer *self, GTlsCertificate *tls_certificat
  *
  * Return value: (transfer none): the default certificate set as #UhmServer:tls-certificate
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 GTlsCertificate *
 uhm_server_set_default_tls_certificate (UhmServer *self)

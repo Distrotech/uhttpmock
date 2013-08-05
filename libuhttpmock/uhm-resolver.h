@@ -40,7 +40,7 @@ typedef struct _UhmResolverPrivate	UhmResolverPrivate;
  *
  * All the fields in the #UhmResolver structure are private and should never be accessed directly.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 typedef struct {
 	/*< private >*/
@@ -53,7 +53,7 @@ typedef struct {
  *
  * All the fields in the #UhmResolverClass structure are private and should never be accessed directly.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 typedef struct {
 	/*< private >*/

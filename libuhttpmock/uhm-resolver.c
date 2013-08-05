@@ -35,7 +35,7 @@
  * A mock DNS resolver which resolves according to specified host-name–IP-address pairs, and raises an error for all non-specified host name requests.
  * This allows network connections for expected services to be redirected to a different server, such as a local mock server on a loopback interface.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 
 #include <stdio.h>
@@ -301,7 +301,7 @@ uhm_resolver_reset (UhmResolver *self)
  *
  * Return value: %TRUE on success; %FALSE otherwise
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 gboolean
 uhm_resolver_add_A (UhmResolver *self, const gchar *hostname, const gchar *addr)
@@ -327,7 +327,7 @@ uhm_resolver_add_A (UhmResolver *self, const gchar *hostname, const gchar *addr)
  *
  * Return value: %TRUE on success; %FALSE otherwise
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 gboolean
 uhm_resolver_add_SRV (UhmResolver *self, const gchar *service, const gchar *protocol, const gchar *domain, const gchar *addr, guint16 port)

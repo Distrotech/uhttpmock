@@ -57,7 +57,7 @@ typedef struct _UhmServerPrivate	UhmServerPrivate;
  *
  * All the fields in the #UhmServer structure are private and should never be accessed directly.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 typedef struct {
 	/*< private >*/
@@ -76,7 +76,7 @@ typedef struct {
  *
  * Most of the fields in the #UhmServerClass structure are private and should never be accessed directly.
  *
- * Since: UNRELEASED
+ * Since: 0.1.0
  */
 typedef struct {
 	/*< private >*/
