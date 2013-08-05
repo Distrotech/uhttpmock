@@ -396,7 +396,7 @@ build_base_uri (UhmServer *self)
 	if (priv->enable_online == FALSE) {
 		base_uri_string = g_strdup_printf ("https://%s:%u", soup_address_get_physical (self->priv->address), self->priv->port);
 	} else {
-		base_uri_string = g_strdup ("https://localhost"); /* FIXME */
+		base_uri_string = g_strdup ("https://localhost"); /* arbitrary */
 	}
 
 	base_uri = soup_uri_new (base_uri_string);
@@ -1697,7 +1697,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 			SoupURI *base_uri;
 
 			/* End of a message. */
-			base_uri = soup_uri_new ("https://localhost/"); /* FIXME */
+			base_uri = build_base_uri (self);
 			online_message = trace_to_soup_message ((const gchar *) priv->comparison_message->data, base_uri);
 			soup_uri_free (base_uri);
 
