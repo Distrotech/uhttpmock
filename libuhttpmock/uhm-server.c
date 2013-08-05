@@ -69,6 +69,7 @@ static void uhm_server_get_property (GObject *object, guint property_id, GValue 
 static void uhm_server_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 
 static gboolean real_handle_message (UhmServer *self, SoupMessage *message, SoupClientContext *client);
+static gboolean real_compare_messages (UhmServer *self, SoupMessage *expected_message, SoupMessage *actual_message, SoupClientContext *actual_client);
 
 static void server_handler_cb (SoupServer *server, SoupMessage *message, const gchar *path, GHashTable *query, SoupClientContext *client, gpointer user_data);
 static void load_file_stream_thread_cb (GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
@@ -125,6 +126,7 @@ enum {
 
 enum {
 	SIGNAL_HANDLE_MESSAGE = 1,
+	SIGNAL_COMPARE_MESSAGES,
 	LAST_SIGNAL,
 };
 
@@ -144,6 +146,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	gobject_class->dispose = uhm_server_dispose;
 
 	klass->handle_message = real_handle_message;
+	klass->compare_messages = real_compare_messages;
 
 	/**
 	 * UhmServer:trace-directory:
@@ -283,6 +286,29 @@ uhm_server_class_init (UhmServerClass *klass)
 	                                               g_cclosure_marshal_generic,
 	                                               G_TYPE_BOOLEAN, 2,
 	                                               SOUP_TYPE_MESSAGE, SOUP_TYPE_CLIENT_CONTEXT);
+
+	/**
+	 * UhmServer::compare-messages:
+	 * @self: a #UhmServer
+	 * @expected_message: a message containing the expected HTTP(S) message provided by #UhmServer::handle-message
+	 * @actual_message: a message containing the incoming HTTP(S) request
+	 * @actual_client: additional data about the HTTP client making the request
+	 *
+	 * Emitted whenever the mock server must compare two #SoupMessage<!-- -->s for equality; e.g. when in the testing or comparison modes.
+	 * Test code may connect to this signal and implement a handler which checks custom properties of the messages. The default handler compares
+	 * the URI and method of the messages, but no headers and not the message bodies.
+	 *
+	 * Signal handlers should return %TRUE if the messages match; and %FALSE otherwise. The first signal handler executed when
+	 * this signal is emitted wins.
+	 *
+	 * Since: UNRELEASED
+	 */
+	signals[SIGNAL_COMPARE_MESSAGES] = g_signal_new ("compare-messages", G_OBJECT_CLASS_TYPE (klass), G_SIGNAL_RUN_LAST,
+	                                               G_STRUCT_OFFSET (UhmServerClass, compare_messages),
+	                                               g_signal_accumulator_first_wins, NULL,
+	                                               g_cclosure_marshal_generic,
+	                                               G_TYPE_BOOLEAN, 3,
+	                                               SOUP_TYPE_MESSAGE, SOUP_TYPE_MESSAGE, SOUP_TYPE_CLIENT_CONTEXT);
 }
 
 static void
@@ -421,15 +447,14 @@ parts_equal (const char *one, const char *two, gboolean insensitive)
 	return insensitive ? !g_ascii_strcasecmp (one, two) : !strcmp (one, two);
 }
 
-/* strcmp()-like return value: 0 means the messages compare equal. */
-static gint
-compare_incoming_message (SoupMessage *expected_message, SoupMessage *actual_message, SoupClientContext *actual_client)
+static gboolean
+real_compare_messages (UhmServer *server, SoupMessage *expected_message, SoupMessage *actual_message, SoupClientContext *actual_client)
 {
 	SoupURI *expected_uri, *actual_uri;
 
 	/* Compare method. */
 	if (g_strcmp0 (expected_message->method, actual_message->method) != 0) {
-		return 1;
+		return FALSE;
 	}
 
 	/* Compare URIs. */
@@ -443,10 +468,21 @@ compare_incoming_message (SoupMessage *expected_message, SoupMessage *actual_mes
 	    !parts_equal (expected_uri->path, actual_uri->path, FALSE) ||
 	    !parts_equal (expected_uri->query, actual_uri->query, FALSE) ||
 	    !parts_equal (expected_uri->fragment, actual_uri->fragment, FALSE)) {
-		return 1;
+		return FALSE;
 	}
 
-	return 0;
+	return TRUE;
+}
+
+/* strcmp()-like return value: 0 means the messages compare equal. */
+static gint
+compare_incoming_message (UhmServer *self, SoupMessage *expected_message, SoupMessage *actual_message, SoupClientContext *actual_client)
+{
+	gboolean messages_equal = FALSE;
+
+	g_signal_emit (self, signals[SIGNAL_COMPARE_MESSAGES], 0, expected_message, actual_message, actual_client, &messages_equal);
+
+	return (messages_equal == TRUE) ? 0 : 1;
 }
 
 static void
@@ -482,7 +518,7 @@ server_process_message (UhmServer *self, SoupMessage *message, SoupClientContext
 	g_assert (priv->next_message != NULL);
 	priv->message_counter++;
 
-	if (compare_incoming_message (priv->next_message, message, client) != 0) {
+	if (compare_incoming_message (self, priv->next_message, message, client) != 0) {
 		gchar *body, *next_uri, *actual_uri;
 
 		/* Received message is not what we expected. Return an error. */
@@ -1715,7 +1751,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 			g_assert (priv->next_message != NULL);
 
 			/* Compare the message from the server with the message in the log file. */
-			if (compare_incoming_message (online_message, priv->next_message, NULL) != 0) {
+			if (compare_incoming_message (self, online_message, priv->next_message, NULL) != 0) {
 				gchar *next_uri, *actual_uri;
 
 				next_uri = soup_uri_to_string (soup_message_get_uri (priv->next_message), TRUE);

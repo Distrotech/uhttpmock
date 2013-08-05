@@ -70,6 +70,9 @@ typedef struct {
  * @handle_message: Class handler for the #UhmServer::handle-message signal. Subclasses may implement this to override the
  * default handler for the signal. The default handler should always return %TRUE to indicate that it has handled
  * the @message from @client by setting an appropriate response on the #SoupMessage.
+ * @compare_messages: Class handler for the #UhmServer::compare-messages signal. Subclasses may implement this to override
+ * the default handler for the signal. The handler should return %TRUE if @expected_message and @actual_message compare
+ * equal, and %FALSE otherwise.
  *
  * Most of the fields in the #UhmServerClass structure are private and should never be accessed directly.
  *
@@ -81,6 +84,7 @@ typedef struct {
 
 	/*< public >*/
 	gboolean (*handle_message) (UhmServer *self, SoupMessage *message, SoupClientContext *client);
+	gboolean (*compare_messages) (UhmServer *self, SoupMessage *expected_message, SoupMessage *actual_message, SoupClientContext *actual_client);
 } UhmServerClass;
 
 GType uhm_server_get_type (void) G_GNUC_CONST;
