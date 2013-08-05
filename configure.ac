@@ -6,7 +6,6 @@ m4_define(uhm_version_minor, 1)
 m4_define(uhm_version_micro, 0)
 
 # API version
-# TODO: This currently isn't used in the library name; once we hit uhm_version_major=1, that should be changed
 m4_define(uhm_api_version_major, 0)
 m4_define(uhm_api_version_minor, 0)
 
