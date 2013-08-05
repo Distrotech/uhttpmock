@@ -26,6 +26,9 @@ TEST_SRCS = \
 TEST_PROGS += server
 server_SOURCES = server.c $(TEST_SRCS)
 
+TEST_PROGS += resolver
+resolver_SOURCES = resolver.c $(TEST_SRCS)
+
 EXTRA_DIST += \
 	cert.pem \
 	key.pem \
