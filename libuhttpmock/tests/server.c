@@ -80,6 +80,23 @@ static const gchar *test_tls_certificate =
 	"-----END PRIVATE KEY-----"
 ;
 
+static void
+assert_server_load_trace (UhmServer *server, const gchar *trace_file_name)
+{
+	gchar *_trace_file_name;
+	GFile *trace_file;
+	GError *child_error = NULL;
+
+	_trace_file_name = g_strconcat (TEST_FILE_DIR, trace_file_name, NULL);
+	trace_file = g_file_new_for_path (_trace_file_name);
+
+	uhm_server_load_trace (server, trace_file, NULL, &child_error);
+	g_assert_no_error (child_error);
+
+	g_object_unref (trace_file);
+	g_free (_trace_file_name);
+}
+
 /* Construct a new UhmServer and see if anything explodes. */
 static void
 test_server_construction (void)
@@ -455,14 +472,9 @@ server_logging_trace_success_normal_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
-	GFile *trace_file;
-	GError *child_error = NULL;
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_success_normal"); /* FIXME */
-	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
-	g_assert_no_error (child_error);
-	g_object_unref (trace_file);
+	assert_server_load_trace (data->server, "server_logging_trace_success_normal");
 
 	/* Dummy unit test code. */
 	uri = soup_uri_new ("https://example.com/test-file");
@@ -492,8 +504,6 @@ server_logging_trace_success_multiple_messages_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
-	GFile *trace_file;
-	GError *child_error = NULL;
 	guint i;
 	SoupKnownStatusCode expected_status_codes[] = {
 		SOUP_STATUS_OK,
@@ -502,10 +512,7 @@ server_logging_trace_success_multiple_messages_cb (LoggingData *data)
 	};
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_success_multiple-messages"); /* FIXME */
-	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
-	g_assert_no_error (child_error);
-	g_object_unref (trace_file);
+	assert_server_load_trace (data->server, "server_logging_trace_success_multiple-messages");
 
 	/* Dummy unit test code. Send three messages. */
 	for (i = 0; i < G_N_ELEMENTS (expected_status_codes); i++) {
@@ -541,14 +548,9 @@ server_logging_trace_failure_method_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
-	GFile *trace_file;
-	GError *child_error = NULL;
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_failure_method"); /* FIXME */
-	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
-	g_assert_no_error (child_error);
-	g_object_unref (trace_file);
+	assert_server_load_trace (data->server, "server_logging_trace_failure_method");
 
 	/* Dummy unit test code. */
 	uri = soup_uri_new ("https://example.com/test-file");
@@ -585,14 +587,9 @@ server_logging_trace_failure_uri_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
-	GFile *trace_file;
-	GError *child_error = NULL;
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_failure_uri"); /* FIXME */
-	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
-	g_assert_no_error (child_error);
-	g_object_unref (trace_file);
+	assert_server_load_trace (data->server, "server_logging_trace_failure_uri");
 
 	/* Dummy unit test code. */
 	uri = soup_uri_new ("https://example.com/test-file-wrong-uri"); /* Note: wrong URI */
@@ -629,14 +626,9 @@ server_logging_trace_failure_unexpected_request_cb (LoggingData *data)
 {
 	SoupMessage *message;
 	SoupURI *uri;
-	GFile *trace_file;
-	GError *child_error = NULL;
 
 	/* Load the trace. */
-	trace_file = g_file_new_for_path ("server_logging_trace_failure_unexpected-request"); /* FIXME */
-	uhm_server_load_trace (data->server, trace_file, NULL, &child_error);
-	g_assert_no_error (child_error);
-	g_object_unref (trace_file);
+	assert_server_load_trace (data->server, "server_logging_trace_failure_unexpected-request");
 
 	/* Dummy unit test code. */
 	uri = soup_uri_new ("https://example.com/test-file-unexpected"); /* Note: unexpected request; not in the trace file */
