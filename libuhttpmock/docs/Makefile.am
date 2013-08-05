@@ -71,7 +71,7 @@ expand_content_files=
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)
 AM_CFLAGS = $(UHM_CFLAGS)
-GTKDOC_LIBS=$(top_builddir)/libuhttpmock/libuhttpmock.la
+GTKDOC_LIBS=$(top_builddir)/libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/gtk-doc.make

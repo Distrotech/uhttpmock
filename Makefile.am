@@ -8,7 +8,7 @@ MAINTAINERCLEANFILES =
 EXTRA_DIST =
 
 # libuhttpmock library
-lib_LTLIBRARIES = libuhttpmock/libuhttpmock.la
+lib_LTLIBRARIES = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
 
 uhmincludedir = $(pkgincludedir)/uhttpmock
 uhm_headers = \
@@ -34,12 +34,12 @@ uhm_sources = \
 main_header = libuhttpmock/uhm.h
 public_headers = $(uhminclude_HEADERS)
 
-libuhttpmock_libuhttpmock_la_SOURCES = \
+libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_SOURCES = \
 	$(private_headers) \
 	$(uhm_sources) \
 	$(NULL)
 
-libuhttpmock_libuhttpmock_la_CPPFLAGS = \
+libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/libuhttpmock \
 	-I$(top_builddir)/libuhttpmock \
@@ -48,20 +48,20 @@ libuhttpmock_libuhttpmock_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(NULL)
 
-libuhttpmock_libuhttpmock_la_CFLAGS = \
+libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_CFLAGS = \
 	$(UHM_CFLAGS) \
 	$(CODE_COVERAGE_CFLAGS) \
 	$(WARN_CFLAGS) \
 	$(AM_CFLAGS) \
 	$(NULL)
 
-libuhttpmock_libuhttpmock_la_LIBADD = \
+libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_LIBADD = \
 	$(UHM_LIBS) \
 	$(CODE_COVERAGE_LIBS) \
 	$(AM_LIBADD) \
 	$(NULL)
 
-libuhttpmock_libuhttpmock_la_LDFLAGS = \
+libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_LDFLAGS = \
 	-version-info $(UHM_LT_VERSION) \
 	-export-symbols $(srcdir)/libuhttpmock/libuhttpmock.symbols \
 	-no-undefined \
@@ -91,19 +91,22 @@ DISTCHECK_CONFIGURE_FLAGS += --enable-introspection
 EXTRA_DIST += m4/introspection.m4
 
 if HAVE_INTROSPECTION
-libuhttpmock/Uhm-@UHM_API_VERSION_MAJOR@.@UHM_API_VERSION_MINOR@.gir: libuhttpmock/libuhttpmock.la
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_INCLUDES = GObject-2.0 Soup-2.4
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_CFLAGS = $(UHM_CFLAGS) $(GNOME_CFLAGS) $(libuhttpmock_libuhttpmock_la_CPPFLAGS)
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_LIBS = libuhttpmock/libuhttpmock.la
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_FILES = $(uhm_sources) $(public_headers)
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_NAMESPACE = Uhm
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_EXPORT_PACKAGES = libuhttpmock
-libuhttpmock_Uhm_@UHM_API_VERSION_MAJOR@_@UHM_API_VERSION_MINOR@_gir_SCANNERFLAGS = \
-	--nsversion=$(UHM_API_VERSION) \
+libuhttpmock/Uhm-@UHM_API_VERSION@.gir: libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_INCLUDES = GObject-2.0 Soup-2.4
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_CFLAGS = \
+	$(UHM_CFLAGS) \
+	$(libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_CPPFLAGS) \
+	$(NULL)
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_LIBS = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_FILES = $(uhm_sources) $(public_headers)
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_NAMESPACE = Uhm
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_EXPORT_PACKAGES = libuhttpmock
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_SCANNERFLAGS = \
+	--nsversion=@UHM_API_VERSION@ \
 	--symbol-prefix=uhm \
 	--c-include="libuhttpmock/uhm.h"
 
-INTROSPECTION_GIRS += libuhttpmock/Uhm-$(UHM_API_VERSION).gir
+INTROSPECTION_GIRS += libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
@@ -119,13 +122,13 @@ if ENABLE_VAPIGEN
 # Note: The VAPI file name has to match the pkg-config file name.
 # If we break API and add a version number to the pkg-config file name, the VAPI can be changed to match.
 # See: https://bugzilla.gnome.org/show_bug.cgi?id=693865
-libuhttpmock/libuhttpmock.vapi: libuhttpmock/Uhm-@UHM_API_VERSION_MAJOR@.@UHM_API_VERSION_MINOR@.gir
+libuhttpmock/libuhttpmock.vapi: libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
 VAPIGEN_VAPIS = libuhttpmock/libuhttpmock.vapi
 
 libuhttpmock_libuhttpmock_vapi_DEPS = libxml-2.0 libsoup-2.4
 libuhttpmock_libuhttpmock_vapi_METADATADIRS = $(srcdir)/libuhttpmock
-libuhttpmock_libuhttpmock_vapi_FILES = libuhttpmock/Uhm-@UHM_API_VERSION_MAJOR@.@UHM_API_VERSION_MINOR@.gir
+libuhttpmock_libuhttpmock_vapi_FILES = libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
 libuhttpmock/libuhttpmock.deps:
 	$(AM_V_GEN) for pkg in $(libuhttpmock_libuhttpmock_vapi_DEPS); do \

@@ -14,7 +14,7 @@ AM_CFLAGS = \
 	$(NULL)
 
 LIBS = \
-	$(top_builddir)/libuhttpmock/libuhttpmock.la \
+	$(top_builddir)/libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la \
 	$(UHM_LIBS) \
 	$(NULL)
 

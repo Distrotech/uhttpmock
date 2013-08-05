@@ -46,12 +46,14 @@ UHM_VERSION_MAJOR=uhm_version_major
 UHM_VERSION_MINOR=uhm_version_minor
 UHM_VERSION_MICRO=uhm_version_micro
 UHM_API_VERSION=uhm_api_version_major.uhm_api_version_minor
+UHM_API_VERSION_U=uhm_api_version_major[_]uhm_api_version_minor
 UHM_API_VERSION_MAJOR=uhm_api_version_major
 UHM_API_VERSION_MINOR=uhm_api_version_minor
 AC_SUBST([UHM_VERSION_MAJOR])
 AC_SUBST([UHM_VERSION_MINOR])
 AC_SUBST([UHM_VERSION_MICRO])
 AC_SUBST([UHM_API_VERSION])
+AC_SUBST([UHM_API_VERSION_U])
 AC_SUBST([UHM_API_VERSION_MAJOR])
 AC_SUBST([UHM_API_VERSION_MINOR])
 
