@@ -20,7 +20,6 @@ uhm_headers = \
 # The following headers are private, and shouldn't be installed:
 private_headers = \
 	libuhttpmock/uhm-default-tls-certificate.h \
-	libuhttpmock/uhm-private.h \
 	$(NULL)
 uhminclude_HEADERS = \
 	$(uhm_headers) \
