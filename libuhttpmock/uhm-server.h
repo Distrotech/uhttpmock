@@ -81,17 +81,17 @@ void uhm_server_unload_trace (UhmServer *self);
 void uhm_server_run (UhmServer *self);
 void uhm_server_stop (UhmServer *self);
 
-GFile *uhm_server_get_trace_directory (UhmServer *self) G_GNUC_WARN_UNUSED_RESULT;
+GFile *uhm_server_get_trace_directory (UhmServer *self);
 void uhm_server_set_trace_directory (UhmServer *self, GFile *trace_directory);
 
 void uhm_server_start_trace (UhmServer *self, const gchar *trace_name);
 void uhm_server_start_trace_full (UhmServer *self, GFile *trace_file);
 void uhm_server_end_trace (UhmServer *self);
 
-gboolean uhm_server_get_enable_online (UhmServer *self) G_GNUC_WARN_UNUSED_RESULT;
+gboolean uhm_server_get_enable_online (UhmServer *self);
 void uhm_server_set_enable_online (UhmServer *self, gboolean enable_online);
 
-gboolean uhm_server_get_enable_logging (UhmServer *self) G_GNUC_WARN_UNUSED_RESULT;
+gboolean uhm_server_get_enable_logging (UhmServer *self);
 void uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging);
 
 void uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length);
