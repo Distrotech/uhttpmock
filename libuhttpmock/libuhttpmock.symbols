@@ -22,6 +22,7 @@ uhm_server_received_message_chunk
 uhm_server_get_address
 uhm_server_get_port
 uhm_server_get_resolver
+uhm_server_error_quark
 uhm_resolver_get_type
 uhm_resolver_new
 uhm_resolver_reset

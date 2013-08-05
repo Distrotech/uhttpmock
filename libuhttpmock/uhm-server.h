@@ -29,6 +29,20 @@
 
 G_BEGIN_DECLS
 
+/**
+ * UhmServerError:
+ * @UHM_SERVER_ERROR_MESSAGE_MISMATCH: In comparison mode, a message received from the client did not match the next message in the current trace file.
+ *
+ * Error codes for #UhmServer operations.
+ **/
+typedef enum {
+	UHM_SERVER_ERROR_MESSAGE_MISMATCH = 1,
+} UhmServerError;
+
+#define UHM_SERVER_ERROR		uhm_server_error_quark ()
+
+GQuark uhm_server_error_quark (void) G_GNUC_CONST;
+
 #define UHM_TYPE_SERVER			(uhm_server_get_type ())
 #define UHM_SERVER(o)			(G_TYPE_CHECK_INSTANCE_CAST ((o), UHM_TYPE_SERVER, UhmServer))
 #define UHM_SERVER_CLASS(k)		(G_TYPE_CHECK_CLASS_CAST((k), UHM_TYPE_SERVER, UhmServerClass))

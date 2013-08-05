@@ -12,6 +12,7 @@ UHM_CHECK_VERSION
 <TITLE>UhmServer</TITLE>
 UhmServer
 UhmServerClass
+UhmServerError
 uhm_server_new
 uhm_server_run
 uhm_server_stop
@@ -43,6 +44,8 @@ uhm_server_get_type
 UHM_SERVER_GET_CLASS
 UHM_SERVER_CLASS
 UHM_IS_SERVER_CLASS
+uhm_server_error_quark
+UHM_SERVER_ERROR
 <SUBSECTION Private>
 UhmServerPrivate
 </SECTION>

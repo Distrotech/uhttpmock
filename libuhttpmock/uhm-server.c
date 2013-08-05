@@ -58,6 +58,12 @@
 #include "uhm-resolver.h"
 #include "uhm-server.h"
 
+GQuark
+uhm_server_error_quark (void)
+{
+	return g_quark_from_static_string ("uhm-server-error-quark");
+}
+
 static void uhm_server_dispose (GObject *object);
 static void uhm_server_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void uhm_server_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
@@ -1602,7 +1608,9 @@ uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging)
  * be compared to the next expected line in the existing trace file. Otherwise, this function is a no-op.
  *
  * On failure, @error will be set and the #UhmServer state will remain unchanged apart from the parse state machine, which will remain
- * in the state reached after parsing @message_chunk.
+ * in the state reached after parsing @message_chunk. A %G_IO_ERROR will be returned if writing to the trace file failed. If in
+ * comparison mode and the received message chunk corresponds to an unexpected message in the trace file, a %UHM_SERVER_ERROR will
+ * be returned.
  *
  * Since: UNRELEASED
  */
@@ -1712,7 +1720,8 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 
 				next_uri = soup_uri_to_string (soup_message_get_uri (priv->next_message), TRUE);
 				actual_uri = soup_uri_to_string (soup_message_get_uri (online_message), TRUE);
-				g_warning ("Expected URI ‘%s’, but got ‘%s’.", next_uri, actual_uri); /* FIXME */
+				g_set_error (error, UHM_SERVER_ERROR, UHM_SERVER_ERROR_MESSAGE_MISMATCH,
+				             "Expected URI ‘%s’, but got ‘%s’.", next_uri, actual_uri);
 				g_free (actual_uri);
 				g_free (next_uri);
 
