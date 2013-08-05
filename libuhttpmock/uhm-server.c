@@ -19,7 +19,7 @@
 
 /**
  * SECTION:uhm-server
- * @short_description: mock web server
+ * @short_description: mock HTTP(S) server
  * @stability: Unstable
  * @include: libuhttpmock/uhm-server.h
  *
