@@ -259,9 +259,9 @@ uhm_server_class_init (UhmServerClass *klass)
 
 	/**
 	 * UhmServer::handle-message:
-	 * @self: TODO
-	 * @message: TODO
-	 * @client: TODO
+	 * @self: a #UhmServer
+	 * @message: a message containing the incoming HTTP(S) request, and which the outgoing HTTP(S) response should be set on
+	 * @client: additional data about the HTTP client making the request
 	 *
 	 * Emitted whenever the mock server is running and receives a request from a client. Test code may connect to this signal and implement a handler
 	 * which builds and returns a suitable response for a given message. The default handler reads a request–response pair from the current trace file,
