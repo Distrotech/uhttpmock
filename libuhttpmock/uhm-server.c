@@ -1371,26 +1371,30 @@ uhm_server_set_trace_directory (UhmServer *self, GFile *trace_directory)
  * uhm_server_start_trace:
  * @self: a #UhmServer
  * @trace_name: name of the trace
+ * @error: (allow-none): return location for a #GError, or %NULL
  *
  * Starts a mock server which follows the trace file of filename @trace_name in the #UhmServer:trace-directory directory.
  * See uhm_server_start_trace_full() for further documentation.
  *
  * This function has undefined behaviour if #UhmServer:trace-directory is %NULL.
  *
+ * On failure, @error will be set and the #UhmServer state will remain unchanged.
+ *
  * Since: UNRELEASED
  */
 void
-uhm_server_start_trace (UhmServer *self, const gchar *trace_name)
+uhm_server_start_trace (UhmServer *self, const gchar *trace_name, GError **error)
 {
 	GFile *trace_file;
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (trace_name != NULL && *trace_name != '\0');
+	g_return_if_fail (error == NULL || *error == NULL);
 
 	g_assert (self->priv->trace_directory != NULL);
 
 	trace_file = g_file_get_child (self->priv->trace_directory, trace_name);
-	uhm_server_start_trace_full (self, trace_file);
+	uhm_server_start_trace_full (self, trace_file, error);
 	g_object_unref (trace_file);
 }
 
@@ -1398,6 +1402,7 @@ uhm_server_start_trace (UhmServer *self, const gchar *trace_name)
  * uhm_server_start_trace_full:
  * @self: a #UhmServer
  * @trace_file: a trace file to load
+ * @error: (allow-none): return location for a #GError, or %NULL
  *
  * Convenience function to start logging to or reading from the given @trace_file, depending on the values of #UhmServer:enable-logging and
  * #UhmServer:enable-online.
@@ -1408,18 +1413,19 @@ uhm_server_start_trace (UhmServer *self, const gchar *trace_name)
  * If #UhmServer:enable-online is %FALSE, the given @trace_file is loaded using uhm_server_load_trace() and then a mock server is
  * started using uhm_server_run().
  *
- * On error, a warning message will be printed. FIXME: Ewww.
+ * On failure, @error will be set and the #UhmServer state will remain unchanged.
  *
  * Since: UNRELEASED
  */
 void
-uhm_server_start_trace_full (UhmServer *self, GFile *trace_file)
+uhm_server_start_trace_full (UhmServer *self, GFile *trace_file, GError **error)
 {
 	UhmServerPrivate *priv = self->priv;
 	GError *child_error = NULL;
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (G_IS_FILE (trace_file));
+	g_return_if_fail (error == NULL || *error == NULL);
 
 	if (priv->output_stream != NULL) {
 		g_warning ("%s: Nested trace files are not supported. Call uhm_server_end_trace() before calling %s again.", G_STRFUNC, G_STRFUNC);
@@ -1428,18 +1434,24 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file)
 
 	/* Start writing out a trace file if logging is enabled. */
 	if (priv->enable_logging == TRUE) {
-		priv->output_stream = g_file_replace (trace_file, NULL, FALSE, G_FILE_CREATE_NONE, NULL, &child_error);
+		GFileOutputStream *output_stream;
+
+		output_stream = g_file_replace (trace_file, NULL, FALSE, G_FILE_CREATE_NONE, NULL, &child_error);
 
 		if (child_error != NULL) {
 			gchar *trace_file_path;
 
 			trace_file_path = g_file_get_path (trace_file);
-			g_warning ("Error replacing trace file ‘%s’: %s", trace_file_path, child_error->message);
+			g_set_error (error, child_error->domain, child_error->code,
+			             "Error replacing trace file ‘%s’: %s", trace_file_path, child_error->message);
 			g_free (trace_file_path);
 
 			g_error_free (child_error);
 
 			return;
+		} else {
+			/* Change state. */
+			priv->output_stream = output_stream;
 		}
 	}
 
@@ -1450,7 +1462,8 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file)
 
 		if (child_error != NULL) {
 			gchar *trace_file_path = g_file_get_path (trace_file);
-			g_error ("Error loading trace file ‘%s’: %s", trace_file_path, child_error->message);
+			g_set_error (error, child_error->domain, child_error->code,
+			             "Error loading trace file ‘%s’: %s", trace_file_path, child_error->message);
 			g_free (trace_file_path);
 
 			g_error_free (child_error);
@@ -1464,7 +1477,8 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file)
 
 		if (child_error != NULL) {
 			gchar *trace_file_path = g_file_get_path (trace_file);
-			g_error ("Error loading trace file ‘%s’: %s", trace_file_path, child_error->message);
+			g_set_error (error, child_error->domain, child_error->code,
+			             "Error loading trace file ‘%s’: %s", trace_file_path, child_error->message);
 			g_free (trace_file_path);
 
 			g_error_free (child_error);
@@ -1580,24 +1594,27 @@ uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging)
  * @self: a #UhmServer
  * @message_chunk: single line of a message which was received
  * @message_chunk_length: length of @message_chunk in bytes
+ * @error: (allow-none): return location for a #GError, or %NULL
  *
  * Indicates to the mock server that a single new line of a message was received from the real server. The message line may be
  * appended to the current trace file if logging is enabled (#UhmServer:enable-logging is %TRUE), adding a newline character
  * at the end. If logging is disabled but online mode is enabled (#UhmServer:enable-online is %TRUE), the message line will
  * be compared to the next expected line in the existing trace file. Otherwise, this function is a no-op.
  *
- * On error, a warning will be printed. FIXME: That's icky.
+ * On failure, @error will be set and the #UhmServer state will remain unchanged apart from the parse state machine, which will remain
+ * in the state reached after parsing @message_chunk.
  *
  * Since: UNRELEASED
  */
 void
-uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length)
+uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length, GError **error)
 {
 	UhmServerPrivate *priv = self->priv;
 	GError *child_error = NULL;
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (message_chunk != NULL);
+	g_return_if_fail (error == NULL || *error == NULL);
 
 	/* Silently ignore the call if logging is disabled and we're offline, or if a trace file hasn't been specified. */
 	if ((priv->enable_logging == FALSE && priv->enable_online == FALSE) || (priv->enable_logging == TRUE && priv->output_stream == NULL)) {
@@ -1658,7 +1675,8 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 	    (g_output_stream_write_all (G_OUTPUT_STREAM (priv->output_stream), message_chunk, message_chunk_length, NULL, NULL, &child_error) == FALSE ||
 	     g_output_stream_write_all (G_OUTPUT_STREAM (priv->output_stream), "\n", 1, NULL, NULL, &child_error) == FALSE)) {
 		gchar *trace_file_path = g_file_get_path (priv->trace_file);
-		g_warning ("Error appending to log file ‘%s’: %s", trace_file_path, child_error->message);
+		g_set_error (error, child_error->domain, child_error->code,
+		             "Error appending to log file ‘%s’: %s", trace_file_path, child_error->message);
 		g_free (trace_file_path);
 
 		g_error_free (child_error);
@@ -1694,7 +1712,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 
 				next_uri = soup_uri_to_string (soup_message_get_uri (priv->next_message), TRUE);
 				actual_uri = soup_uri_to_string (soup_message_get_uri (online_message), TRUE);
-				g_warning ("Expected URI ‘%s’, but got ‘%s’.", next_uri, actual_uri);
+				g_warning ("Expected URI ‘%s’, but got ‘%s’.", next_uri, actual_uri); /* FIXME */
 				g_free (actual_uri);
 				g_free (next_uri);
 
