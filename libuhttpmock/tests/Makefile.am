@@ -30,9 +30,6 @@ TEST_PROGS += resolver
 resolver_SOURCES = resolver.c $(TEST_SRCS)
 
 EXTRA_DIST += \
-	cert.pem \
-	key.pem \
-	\
 	server_logging_trace_failure_method \
 	server_logging_trace_failure_unexpected-request \
 	server_logging_trace_failure_uri \

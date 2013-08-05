@@ -24,6 +24,62 @@
 
 #include "uhm.h"
 
+/* Test TLS certificate for use below. */
+static const gchar *test_tls_certificate =
+	"-----BEGIN CERTIFICATE-----\n"
+	"MIID6TCCAtGgAwIBAgIJAI9hYGsc661fMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD\n"
+	"VQQGEwJHQjEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MREwDwYDVQQKDAhsaWJnZGF0\n"
+	"YTEOMAwGA1UECwwFVGVzdHMxFzAVBgNVBAMMDmxpYmdkYXRhIHRlc3RzMSgwJgYJ\n"
+	"KoZIhvcNAQkBFhlsaWJnZGF0YS1tYWludEBnbm9tZS5idWdzMB4XDTEzMDcwNjE3\n"
+	"NDQxNFoXDTEzMDgwNTE3NDQxNFowgYoxCzAJBgNVBAYTAkdCMRUwEwYDVQQHDAxE\n"
+	"ZWZhdWx0IENpdHkxETAPBgNVBAoMCGxpYmdkYXRhMQ4wDAYDVQQLDAVUZXN0czEX\n"
+	"MBUGA1UEAwwObGliZ2RhdGEgdGVzdHMxKDAmBgkqhkiG9w0BCQEWGWxpYmdkYXRh\n"
+	"LW1haW50QGdub21lLmJ1Z3MwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB\n"
+	"AQDCbpdfrtWTz+ZpNaVZuxaeAAY+f/xZz4wEH1gaNBNb3u9CPEWofW+fLNB6izkn\n"
+	"f9qhx2K8PrM9LKHDJS4uUU9dkfQHQsrCSffRWqQTeOOnpYHjS21iDYdOt4e//f/J\n"
+	"erAEIyWMQAP5eqMt4hp5wrfhSh2ul9lcHz2Lv5u6H+I8ygoUaMyH15WIlEzxOsn4\n"
+	"i+lXSkdmso2n1FYbiMyyMYButnnmv+EcPvOdw88PB8Y6PnCN2Ye0fo9HvcJhHEdg\n"
+	"GM4SKsejA/L+T8fX0FYCXrsLPYU0Ntm15ZV8nNsxCoZFGmdTs/prL8ztXaI1tYdi\n"
+	"lI1RKVTOVxD2DKdrCs5bnxYhAgMBAAGjUDBOMB0GA1UdDgQWBBQwhz/4hEriPnF5\n"
+	"F3TDY9TQLzxlnDAfBgNVHSMEGDAWgBQwhz/4hEriPnF5F3TDY9TQLzxlnDAMBgNV\n"
+	"HRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4IBAQAIVnySe76zjb5UHromPibgT9eL\n"
+	"n8oZ76aGj6+VMLucpaK8K7U7y2ONAO+BB+wUyLaq48EYb6DmpFKThAxTajYd1f/7\n"
+	"14bJIew8papMEooiJHyOVfZPLOePjCldV5+hPfwsfJ3NSDL8dc+IB2PQmgp32nom\n"
+	"9uvQMOdD56hHSIP5zFZwNiWH75piWyUNs/+cbHKgnyVGWaoVd7z3E5dNelOMopbo\n"
+	"qvWk2MM3nHpiQqMZyliTkq5uD2Q8WiXBD4rPUeEU55NaPslB8xKwldmrAlcwYvIg\n"
+	"2SDhAsTPLcCgjNuHlr/v4VC29YsF37oYCGfmWvLwGFGufsxcxXkrVhhNr2WB\n"
+	"-----END CERTIFICATE-----"
+	"\n"
+	"-----BEGIN PRIVATE KEY-----\n"
+	"MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDCbpdfrtWTz+Zp\n"
+	"NaVZuxaeAAY+f/xZz4wEH1gaNBNb3u9CPEWofW+fLNB6izknf9qhx2K8PrM9LKHD\n"
+	"JS4uUU9dkfQHQsrCSffRWqQTeOOnpYHjS21iDYdOt4e//f/JerAEIyWMQAP5eqMt\n"
+	"4hp5wrfhSh2ul9lcHz2Lv5u6H+I8ygoUaMyH15WIlEzxOsn4i+lXSkdmso2n1FYb\n"
+	"iMyyMYButnnmv+EcPvOdw88PB8Y6PnCN2Ye0fo9HvcJhHEdgGM4SKsejA/L+T8fX\n"
+	"0FYCXrsLPYU0Ntm15ZV8nNsxCoZFGmdTs/prL8ztXaI1tYdilI1RKVTOVxD2DKdr\n"
+	"Cs5bnxYhAgMBAAECggEAaMkhW7fl8xuAmgMHciyaK9zngJeJcP2iADbETJr0M/ca\n"
+	"CyBgikXP+oE0ela+HsORGM9ULw+7maSMKZfII74+f7dBRQiCLeOfY3zuIHBugNN6\n"
+	"BP2JneacnZfb2WUSjYtJgXFPsx5tBe9KMlhA3I5Me2ZuSMIdqsBLcx141/6G9ysZ\n"
+	"qSfez4FCAmPB3CO6zjUyMUMwYkAilkZgpmSMvE/HtW5e/NDnCKk0/n30E2xthCUC\n"
+	"eWwAMvekpyssKyAHxEHk7XZoIjMldUI7erFHRgsr5HFypp2Q7Gcd5KXVeotV8Y67\n"
+	"O/aAKXURhdESeqJUS0D9ezJg3ES6Q2YOgA61OcK74QKBgQD8O5HM/MyN86RQV69s\n"
+	"VduYpndq+tKnXBAnLxD9D2cjEI9wUXJFOZJTfVYzeVxMY9iWmuKJq9IwJLG4/Zkp\n"
+	"s66pukesnJvLki2hhTcoOFfMzT4ZT/CaDPOO6PAgvdBL581uX68Uh8rPn9bYqxCA\n"
+	"IG0n8sA/1j4H86YQVWzpI4tPtwKBgQDFVgQ54TT/yRTVdhNYooPHzSOQIf/BfNBe\n"
+	"JW3B1FWONeznwV81TNdvTmNiSU0SKF5/VMuM6g8QOqXYLCo0i9DD65tH16XaArhw\n"
+	"ctxtHN5ivDDFxEP9mgsO5jeVvk+e3516S9o/8BzzmTwo1zTz6MMT/JedIC6shhSW\n"
+	"OnT6cBcY5wKBgQD8DEbQ8VkzDGGIy2aHunAa5VX1uDjidnPJxBWU21xzxKuhUDIB\n"
+	"DNu0xE1sWHyr9SZMsO9pJSJ/a1uRARGZg20pO/U9fq2MSkGA4w7QCSVriTjhsGk8\n"
+	"d262wvyZqzPHdhZpkgHxYRSATzgxARgXANAzGDeWUu9foNC0B7kya4tdlwKBgQCm\n"
+	"qY0MLS4L0ZIs7npMY4UU3CZq9qwAiB+bQ9U83M4dO2IIIgL9CxbwRK4fNnVHHp0g\n"
+	"wUbgjlWGiWHD/xjuJB9/OJ9+v5ytUZrgLcIIzVbs4K/4d1hM+SrZvIm5iG/KaGWi\n"
+	"Aioj0fFBs2thutBYJ3+Kg8ywwZtpzhvY/SoK0VxQhQKBgQCB2e3HKOFnMFBO93dZ\n"
+	"IyaUmhTM0ad+cP94mX/7REVdmN2NUsG3brIoibkgESL1h+2UbEkeOKIYWD4+ZZYJ\n"
+	"V4ZhTsRcefOgTqU+EOAYSwNvNCld3X5oBi+b9Ie6y1teT6As5zGnH4YspTa5iCAk\n"
+	"M97r3MWTAb4wpTnkHHoJ0GIHpA==\n"
+	"-----END PRIVATE KEY-----"
+;
+
 /* Construct a new UhmServer and see if anything explodes. */
 static void
 test_server_construction (void)
@@ -223,6 +279,59 @@ test_server_properties_resolver (void)
 	g_object_unref (server);
 }
 
+/* Test getting and setting the UhmServer:tls-certificate property. */
+static void
+test_server_properties_tls_certificate (void)
+{
+	UhmServer *server;
+	GTlsCertificate *tls_certificate, *new_tls_certificate;
+	guint counter;
+	GError *child_error = NULL;
+
+	server = uhm_server_new ();
+
+	counter = 0;
+	g_signal_connect (G_OBJECT (server), "notify::tls-certificate", (GCallback) notify_emitted_cb, &counter);
+
+	/* Check the default value. */
+	g_assert (uhm_server_get_tls_certificate (server) == NULL);
+	g_object_get (G_OBJECT (server), "tls-certificate", &tls_certificate, NULL);
+	g_assert (tls_certificate == NULL);
+
+	/* Set the tls-certificate to an arbitrary, existent, directory. */
+	new_tls_certificate = g_tls_certificate_new_from_pem (test_tls_certificate, -1, &child_error);
+	g_assert_no_error (child_error);
+	uhm_server_set_tls_certificate (server, new_tls_certificate);
+	g_assert_cmpuint (counter, ==, 1);
+
+	/* Check the new certificate can be retrieved via the getter. */
+	tls_certificate = uhm_server_get_tls_certificate (server);
+	g_assert (G_IS_TLS_CERTIFICATE (tls_certificate));
+	g_assert (g_tls_certificate_is_same (tls_certificate, new_tls_certificate) == TRUE);
+
+	/* Check the new certificate can be retrieved as a property. */
+	g_object_get (G_OBJECT (server), "tls-certificate", &tls_certificate, NULL);
+	g_assert (G_IS_TLS_CERTIFICATE (tls_certificate));
+	g_assert (g_tls_certificate_is_same (tls_certificate, new_tls_certificate) == TRUE);
+
+	g_object_unref (tls_certificate);
+	g_object_unref (new_tls_certificate);
+
+	/* Set the certificate to NULL again, this time using the GObject setter. */
+	g_object_set (G_OBJECT (server), "tls-certificate", NULL, NULL);
+	g_assert_cmpuint (counter, ==, 2);
+	g_assert (uhm_server_get_tls_certificate (server) == NULL);
+
+	/* Set the certificate to the default. */
+	new_tls_certificate = uhm_server_set_default_tls_certificate (server);
+	g_assert (G_IS_TLS_CERTIFICATE (new_tls_certificate));
+	tls_certificate = uhm_server_get_tls_certificate (server);
+	g_assert (g_tls_certificate_is_same (tls_certificate, new_tls_certificate) == TRUE);
+	g_assert_cmpuint (counter, ==, 3);
+
+	g_object_unref (server);
+}
+
 typedef struct {
 	UhmServer *server;
 	SoupSession *session;
@@ -239,6 +348,7 @@ set_up_logging (LoggingData *data, gconstpointer user_data)
 
 	uhm_server_set_enable_logging (data->server, TRUE);
 	uhm_server_set_enable_online (data->server, TRUE);
+	uhm_server_set_default_tls_certificate (data->server);
 
 	if (user_data != NULL) {
 		g_signal_connect (G_OBJECT (data->server), "handle-message", (GCallback) user_data, NULL);
@@ -577,6 +687,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/server/properties/address", test_server_properties_address);
 	g_test_add_func ("/server/properties/port", test_server_properties_port);
 	g_test_add_func ("/server/properties/resolver", test_server_properties_resolver);
+	g_test_add_func ("/server/properties/tls-certificate", test_server_properties_tls_certificate);
 
 	g_test_add ("/server/logging/no-trace/success", LoggingData, server_logging_no_trace_success_handle_message_cb,
 	            set_up_logging, test_server_logging_no_trace_success, tear_down_logging);

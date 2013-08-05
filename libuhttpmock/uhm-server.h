@@ -99,7 +99,12 @@ void uhm_server_received_message_chunk (UhmServer *self, const gchar *message_ch
 const gchar *uhm_server_get_address (UhmServer *self);
 guint uhm_server_get_port (UhmServer *self);
 
-UhmResolver *uhm_server_get_resolver (UhmServer *self) G_GNUC_WARN_UNUSED_RESULT;
+UhmResolver *uhm_server_get_resolver (UhmServer *self);
+
+GTlsCertificate *uhm_server_get_tls_certificate (UhmServer *self);
+void uhm_server_set_tls_certificate (UhmServer *self, GTlsCertificate *tls_certificate);
+
+GTlsCertificate *uhm_server_set_default_tls_certificate (UhmServer *self) G_GNUC_MALLOC;
 
 G_END_DECLS
 
