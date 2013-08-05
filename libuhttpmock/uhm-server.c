@@ -461,8 +461,6 @@ real_compare_messages (UhmServer *server, SoupMessage *expected_message, SoupMes
 	expected_uri = soup_message_get_uri (expected_message);
 	actual_uri = soup_message_get_uri (actual_message);
 
-	/* TODO: Also compare actual_client auth domains and address? HTTP version? Method? */
-
 	if (!parts_equal (expected_uri->user, actual_uri->user, FALSE) ||
 	    !parts_equal (expected_uri->password, actual_uri->password, FALSE) ||
 	    !parts_equal (expected_uri->path, actual_uri->path, FALSE) ||
@@ -1730,8 +1728,9 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 
 	/* Or compare to the existing trace file. */
 	if (priv->enable_logging == FALSE && priv->enable_online == TRUE) {
-		/* Build up the message to compare. */
-		/* TODO: escape null bytes? */
+		/* Build up the message to compare. We explicitly don't escape nul bytes, because we want the trace
+		 * files to be (pretty much) ASCII. File uploads are handled by zero-extending the responses according
+		 * to the traced Content-Length. */
 		g_byte_array_append (priv->comparison_message, (const guint8 *) message_chunk, message_chunk_length);
 		g_byte_array_append (priv->comparison_message, (const guint8 *) '\n', 1);
 
