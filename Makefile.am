@@ -120,18 +120,16 @@ if ENABLE_VAPIGEN
 -include $(VAPIGEN_MAKEFILE)
 
 # Note: The VAPI file name has to match the pkg-config file name.
-# If we break API and add a version number to the pkg-config file name, the VAPI can be changed to match.
-# See: https://bugzilla.gnome.org/show_bug.cgi?id=693865
-libuhttpmock/libuhttpmock.vapi: libuhttpmock/Uhm-@UHM_API_VERSION@.gir
+libuhttpmock/libuhttpmock-@UHM_API_VERSION@.vapi: libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
-VAPIGEN_VAPIS = libuhttpmock/libuhttpmock.vapi
+VAPIGEN_VAPIS = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.vapi
 
-libuhttpmock_libuhttpmock_vapi_DEPS = libxml-2.0 libsoup-2.4
-libuhttpmock_libuhttpmock_vapi_METADATADIRS = $(srcdir)/libuhttpmock
-libuhttpmock_libuhttpmock_vapi_FILES = libuhttpmock/Uhm-@UHM_API_VERSION@.gir
+libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_DEPS = libxml-2.0 libsoup-2.4
+libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_METADATADIRS = $(srcdir)/libuhttpmock
+libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_FILES = libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
-libuhttpmock/libuhttpmock.deps:
-	$(AM_V_GEN) for pkg in $(libuhttpmock_libuhttpmock_vapi_DEPS); do \
+libuhttpmock/libuhttpmock-@UHM_API_VERSION@.deps:
+	$(AM_V_GEN) for pkg in $(libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_DEPS); do \
 		echo $$pkg >> $@; \
 	done
 
@@ -177,9 +175,11 @@ MAINTAINERCLEANFILES += \
 
 DISTCHECK_CONFIGURE_FLAGS += --enable-gtk-doc
 
-# pkgconfig data
+# pkg-config data
+# Note that the template file is called libuhttpmock.pc.in, but generates a
+# versioned .pc file using some magic in AC_CONFIG_FILES.
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libuhttpmock/libuhttpmock.pc
+pkgconfig_DATA = libuhttpmock/libuhttpmock-$(UHM_API_VERSION).pc
 
 CLEANFILES += $(pkgconfig_DATA)
 EXTRA_DIST += \

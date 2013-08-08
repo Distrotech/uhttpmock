@@ -86,10 +86,11 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 AC_CONFIG_FILES([
 Makefile
-libuhttpmock/libuhttpmock.pc
+libuhttpmock/libuhttpmock-$UHM_API_VERSION.pc:libuhttpmock/libuhttpmock.pc.in
 libuhttpmock/uhm-version.h
 libuhttpmock/tests/Makefile
 libuhttpmock/docs/Makefile
 libuhttpmock/docs/version.xml
-])
+],[],
+[UHM_API_VERSION='$UHM_API_VERSION'])
 AC_OUTPUT
