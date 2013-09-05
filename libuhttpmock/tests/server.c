@@ -22,7 +22,7 @@
 #include <string.h>
 #include <libsoup/soup.h>
 
-#include "uhm.h"
+#include "uhm-server.h"
 
 /* Test TLS certificate for use below. */
 static const gchar *test_tls_certificate =

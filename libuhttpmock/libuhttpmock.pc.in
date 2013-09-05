@@ -8,5 +8,5 @@ Description: HTTP web service mocking library
 Version: @VERSION@
 Requires: @UHM_PACKAGES_PUBLIC@
 Requires.private: @UHM_PACKAGES_PRIVATE@
-Libs: -L${libdir} -luhttpmock
-Cflags: -I${includedir}/libuhttpmock
+Libs: -L${libdir} -luhttpmock-@UHM_API_VERSION@
+Cflags: -I${includedir}/libuhttpmock-@UHM_API_VERSION@

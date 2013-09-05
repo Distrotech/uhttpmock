@@ -10,11 +10,11 @@ EXTRA_DIST =
 # libuhttpmock library
 lib_LTLIBRARIES = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
 
-uhmincludedir = $(pkgincludedir)/uhttpmock
+uhmincludedir = $(includedir)/libuhttpmock-@UHM_API_VERSION@/uhttpmock
 uhm_headers = \
-	libuhttpmock/uhm.h \
 	libuhttpmock/uhm-resolver.h \
 	libuhttpmock/uhm-server.h \
+	libuhttpmock/uhm-version.h
 	$(NULL)
 
 # The following headers are private, and shouldn't be installed:
@@ -22,8 +22,8 @@ private_headers = \
 	libuhttpmock/uhm-default-tls-certificate.h \
 	$(NULL)
 uhminclude_HEADERS = \
+	$(main_header) \
 	$(uhm_headers) \
-	libuhttpmock/uhm-version.h
 	$(NULL)
 
 uhm_sources = \
@@ -98,7 +98,7 @@ libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_CFLAGS = \
 	$(libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_CPPFLAGS) \
 	$(NULL)
 libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_LIBS = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la
-libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_FILES = $(uhm_sources) $(public_headers)
+libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_FILES = $(uhm_sources) $(uhm_headers)
 libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_NAMESPACE = Uhm
 libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_EXPORT_PACKAGES = libuhttpmock
 libuhttpmock_Uhm_@UHM_API_VERSION_U@_gir_SCANNERFLAGS = \

@@ -22,7 +22,7 @@
 #include <string.h>
 #include <libsoup/soup.h>
 
-#include "uhm.h"
+#include "uhm-resolver.h"
 
 typedef struct {
 	UhmResolver *resolver;

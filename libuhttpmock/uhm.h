@@ -21,8 +21,8 @@
 #define UHM_H
 
 /* Core files */
-#include <libuhttpmock/uhm-server.h>
-#include <libuhttpmock/uhm-resolver.h>
-#include <libuhttpmock/uhm-version.h>
+#include <uhttpmock/uhm-server.h>
+#include <uhttpmock/uhm-resolver.h>
+#include <uhttpmock/uhm-version.h>
 
 #endif /* !UHM_H */
