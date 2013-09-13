@@ -1307,16 +1307,17 @@ uhm_server_run (UhmServer *self)
 	priv->address = soup_socket_get_local_address (soup_server_get_listener (priv->server));
 	priv->port = soup_server_get_port (priv->server);
 
-	g_object_freeze_notify (G_OBJECT (self));
-	g_object_notify (G_OBJECT (self), "address");
-	g_object_notify (G_OBJECT (self), "port");
-	g_object_thaw_notify (G_OBJECT (self));
-
 	/* Set up the resolver. It is expected that callers will grab the resolver (by calling uhm_server_get_resolver())
 	 * immediately after this function returns, and add some expected hostnames by calling uhm_resolver_add_A() one or
 	 * more times, before starting the next test. */
 	priv->resolver = uhm_resolver_new ();
 	g_resolver_set_default (G_RESOLVER (priv->resolver));
+
+	g_object_freeze_notify (G_OBJECT (self));
+	g_object_notify (G_OBJECT (self), "address");
+	g_object_notify (G_OBJECT (self), "port");
+	g_object_notify (G_OBJECT (self), "resolver");
+	g_object_thaw_notify (G_OBJECT (self));
 
 	/* Start the network thread. */
 	priv->server_thread = g_thread_new ("mock-server-thread", server_thread_cb, self);
@@ -1359,6 +1360,7 @@ uhm_server_stop (UhmServer *self)
 	g_object_freeze_notify (G_OBJECT (self));
 	g_object_notify (G_OBJECT (self), "address");
 	g_object_notify (G_OBJECT (self), "port");
+	g_object_notify (G_OBJECT (self), "resolver");
 	g_object_thaw_notify (G_OBJECT (self));
 
 	/* Reset the trace file. */
