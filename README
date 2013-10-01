@@ -10,6 +10,18 @@ the code.
 
 libuhttpmock’s API is currently unstable and is likely to change wildly.
 
+Using uhttpmock
+===============
+
+Key points:
+ 1. All requests must be HTTPS or all requests must be HTTP. uhttpmock can’t
+    handle a mixture of HTTPS and HTTP requests.
+ 2. You must override your code to use the port returned by
+    uhm_server_get_port(), rather than the default HTTP or HTTPS ports.
+ 3. You must disable libsoup’s SSL strict mode (SOUP_SESSION_SSL_STRICT)
+    because uhttpmock uses self-signed SSL certificates.
+ 4. You must output all libsoup log data to uhttpmock.
+
 Dependencies
 ============
 
