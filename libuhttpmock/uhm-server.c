@@ -752,7 +752,7 @@ error:
 static SoupMessage *
 trace_to_soup_message (const gchar *trace, SoupURI *base_uri)
 {
-	SoupMessage *message;
+	SoupMessage *message = NULL;
 	const gchar *i, *j, *method;
 	gchar *uri_string, *response_message;
 	SoupHTTPVersion http_version;
@@ -828,6 +828,7 @@ trace_to_soup_message (const gchar *trace, SoupURI *base_uri)
 		trace += strlen ("HTTP/1.0");
 	} else {
 		g_warning ("Unrecognised HTTP version ‘%s’.", trace);
+		http_version = SOUP_HTTP_1_1;
 	}
 
 	if (*trace != '\n') {
@@ -909,7 +910,7 @@ trace_to_soup_message (const gchar *trace, SoupURI *base_uri)
 	return message;
 
 error:
-	g_object_unref (message);
+	g_clear_object (&message);
 
 	return NULL;
 }
