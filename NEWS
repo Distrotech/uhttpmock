@@ -2,12 +2,10 @@ Overview of changes from uhttpmock 0.1.0 to uhttpmock 0.2.0
 ===========================================================
 
 Major changes:
-
-API changes:
-
-Bugs fixed:
-
-Updated translations:
+ • Rename pkg-config file from libuhttpmock.pc to libuhttpmock-0.0.pc,
+   to allow for parallel installation of different versions
+ • Rename VAPI file similarly
+ • Install header files in a versioned directory
 
 Initial release of uhttpmock 0.1.0
 ==================================
