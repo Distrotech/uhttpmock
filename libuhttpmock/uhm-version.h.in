@@ -23,7 +23,7 @@
 
 /**
  * SECTION:uhm-version
- * @Short_description: Macros to check the uhttpmock version
+ * @Short_description: Macros to check the libuhttpmock version
  * @Title: Version Information
  *
  * uhttpmock provides compile-time version information.
