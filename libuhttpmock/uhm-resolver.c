@@ -272,6 +272,8 @@ uhm_resolver_reset (UhmResolver *self)
 {
 	GList *fake = NULL;
 
+	g_return_if_fail (UHM_IS_RESOLVER (self));
+
 	for (fake = self->priv->fake_A; fake != NULL; fake = g_list_next (fake)) {
 		FakeHost *entry = fake->data;
 		g_free (entry->key);
@@ -306,7 +308,13 @@ uhm_resolver_reset (UhmResolver *self)
 gboolean
 uhm_resolver_add_A (UhmResolver *self, const gchar *hostname, const gchar *addr)
 {
-	FakeHost *entry = g_new0 (FakeHost, 1);
+	FakeHost *entry;
+
+	g_return_val_if_fail (UHM_IS_RESOLVER (self), FALSE);
+	g_return_val_if_fail (hostname != NULL && *hostname != '\0', FALSE);
+	g_return_val_if_fail (addr != NULL && *addr != '\0', FALSE);
+
+	entry = g_new0 (FakeHost, 1);
 	entry->key = g_strdup (hostname);
 	entry->addr = g_strdup (addr);
 	self->priv->fake_A = g_list_append (self->priv->fake_A, entry);
@@ -335,6 +343,13 @@ uhm_resolver_add_SRV (UhmResolver *self, const gchar *service, const gchar *prot
 	gchar *key;
 	GSrvTarget *serv;
 	FakeService *entry;
+
+	g_return_val_if_fail (UHM_IS_RESOLVER (self), FALSE);
+	g_return_val_if_fail (service != NULL && *service != '\0', FALSE);
+	g_return_val_if_fail (protocol != NULL && *protocol != '\0', FALSE);
+	g_return_val_if_fail (domain != NULL && *domain != '\0', FALSE);
+	g_return_val_if_fail (addr != NULL && *addr != '\0', FALSE);
+	g_return_val_if_fail (port > 0, FALSE);
 
 	key = _service_rrname (service, protocol, domain);
 	entry = g_new0 (FakeService, 1);
