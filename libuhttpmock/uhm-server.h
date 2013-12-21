@@ -124,6 +124,8 @@ void uhm_server_set_tls_certificate (UhmServer *self, GTlsCertificate *tls_certi
 
 GTlsCertificate *uhm_server_set_default_tls_certificate (UhmServer *self) G_GNUC_MALLOC;
 
+void uhm_server_set_expected_domain_names (UhmServer *self, const gchar * const *domain_names);
+
 G_END_DECLS
 
 #endif /* !UHM_SERVER_H */

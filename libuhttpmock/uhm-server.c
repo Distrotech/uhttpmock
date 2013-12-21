@@ -65,6 +65,7 @@ uhm_server_error_quark (void)
 }
 
 static void uhm_server_dispose (GObject *object);
+static void uhm_server_finalize (GObject *object);
 static void uhm_server_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void uhm_server_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 
@@ -77,6 +78,8 @@ static void load_file_iteration_thread_cb (GTask *task, gpointer source_object, 
 
 static GFileInputStream *load_file_stream (GFile *trace_file, GCancellable *cancellable, GError **error);
 static SoupMessage *load_file_iteration (GFileInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error);
+
+static void apply_expected_domain_names (UhmServer *self);
 
 struct _UhmServerPrivate {
 	/* UhmServer is based around HTTP/HTTPS, and cannot be extended to support other application-layer protocols.
@@ -93,6 +96,9 @@ struct _UhmServerPrivate {
 	/* Server interface. */
 	SoupAddress *address; /* unowned */
 	guint port;
+
+	/* Expected resolver domain names. */
+	gchar **expected_domain_names;
 
 	GFile *trace_file;
 	GFileInputStream *input_stream;
@@ -144,6 +150,7 @@ uhm_server_class_init (UhmServerClass *klass)
 	gobject_class->get_property = uhm_server_get_property;
 	gobject_class->set_property = uhm_server_set_property;
 	gobject_class->dispose = uhm_server_dispose;
+	gobject_class->finalize = uhm_server_finalize;
 
 	klass->handle_message = real_handle_message;
 	klass->compare_messages = real_compare_messages;
@@ -336,6 +343,17 @@ uhm_server_dispose (GObject *object)
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (uhm_server_parent_class)->dispose (object);
+}
+
+static void
+uhm_server_finalize (GObject *object)
+{
+	UhmServerPrivate *priv = UHM_SERVER (object)->priv;
+
+	g_strfreev (priv->expected_domain_names);
+
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS (uhm_server_parent_class)->finalize (object);
 }
 
 static void
@@ -1310,9 +1328,12 @@ uhm_server_run (UhmServer *self)
 
 	/* Set up the resolver. It is expected that callers will grab the resolver (by calling uhm_server_get_resolver())
 	 * immediately after this function returns, and add some expected hostnames by calling uhm_resolver_add_A() one or
-	 * more times, before starting the next test. */
+	 * more times, before starting the next test.Or they could call uhm_server_set_expected_domain_names() any time. */
 	priv->resolver = uhm_resolver_new ();
 	g_resolver_set_default (G_RESOLVER (priv->resolver));
+
+	/* Note: This must be called before notify::resolver, so the user can add extra domain names in that callback if desired. */
+	apply_expected_domain_names (self);
 
 	g_object_freeze_notify (G_OBJECT (self));
 	g_object_notify (G_OBJECT (self), "address");
@@ -1907,4 +1928,60 @@ uhm_server_set_default_tls_certificate (UhmServer *self)
 	g_object_unref (cert);
 
 	return cert;
+}
+
+static void
+apply_expected_domain_names (UhmServer *self)
+{
+	UhmServerPrivate *priv = self->priv;
+	const gchar *ip_address;
+	guint i;
+
+	if (priv->resolver == NULL) {
+		return;
+	}
+
+	uhm_resolver_reset (priv->resolver);
+
+	if (priv->expected_domain_names == NULL) {
+		return;
+	}
+
+	ip_address = uhm_server_get_address (self);
+	g_assert (ip_address != NULL);
+
+	for (i = 0; priv->expected_domain_names[i] != NULL; i++) {
+		uhm_resolver_add_A (priv->resolver, priv->expected_domain_names[i], ip_address);
+	}
+}
+
+/**
+ * uhm_server_set_expected_domain_names:
+ * @self: a #UhmServer
+ * @domain_names: (array zero-terminated=1) (allow-none) (element-type utf8): %NULL-terminated array of domain names to expect, or %NULL to not expect any
+ *
+ * Set the domain names which are expected to have requests made of them by the client code interacting with this #UhmServer.
+ * This is a convenience method which calls uhm_resolver_add_A() on the server’s #UhmResolver for each of the domain names
+ * listed in @domain_names. It associates them with the server’s current IP address, and automatically updates the mappings
+ * if the IP address or resolver change.
+ *
+ * Note that this will reset all records on the server’s #UhmResolver, replacing all of them with the provided @domain_names.
+ *
+ * It is safe to add further domain names to the #UhmResolver in a callback for the #GObject::notify signal for #UhmServer:resolver;
+ * that signal is emitted after the resolver is cleared and these @domain_names are added.
+ *
+ * Since: UNRELEASED
+ */
+void
+uhm_server_set_expected_domain_names (UhmServer *self, const gchar * const *domain_names)
+{
+	gchar **new_domain_names;
+
+	g_return_if_fail (UHM_IS_SERVER (self));
+
+	new_domain_names = g_strdupv ((gchar **) domain_names);  /* may be NULL */
+	g_strfreev (self->priv->expected_domain_names);
+	self->priv->expected_domain_names = new_domain_names;
+
+	apply_expected_domain_names (self);
 }
