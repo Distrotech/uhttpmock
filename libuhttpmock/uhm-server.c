@@ -1118,7 +1118,8 @@ uhm_server_unload_trace (UhmServer *self)
  *
  * Loading the trace file may be cancelled from another thread using @cancellable.
  *
- * On error, @error will be set and the state of the #UhmServer will not change.
+ * On error, @error will be set and the state of the #UhmServer will not change. A #GIOError will be set if there is
+ * a problem reading the trace file.
  *
  * Since: 0.1.0
  */
@@ -1244,6 +1245,7 @@ uhm_server_load_trace_async (UhmServer *self, GFile *trace_file, GCancellable *c
  * Finishes an asynchronous operation started by uhm_server_load_trace_async().
  *
  * On error, @error will be set and the state of the #UhmServer will not change.
+ * See uhm_server_load_trace() for details on the error domains used.
  *
  * Since: 0.1.0
  */
@@ -1442,7 +1444,8 @@ uhm_server_set_trace_directory (UhmServer *self, GFile *trace_directory)
  *
  * This function has undefined behaviour if #UhmServer:trace-directory is %NULL.
  *
- * On failure, @error will be set and the #UhmServer state will remain unchanged.
+ * On failure, @error will be set and the #UhmServer state will remain unchanged. See uhm_server_start_trace_full() for
+ * details of the error domains used.
  *
  * Since: 0.1.0
  */
@@ -1477,7 +1480,9 @@ uhm_server_start_trace (UhmServer *self, const gchar *trace_name, GError **error
  * If #UhmServer:enable-online is %FALSE, the given @trace_file is loaded using uhm_server_load_trace() and then a mock server is
  * started using uhm_server_run().
  *
- * On failure, @error will be set and the #UhmServer state will remain unchanged.
+ * On failure, @error will be set and the #UhmServer state will remain unchanged. A #GIOError will be set if logging is enabled
+ * (#UhmServer:enable-logging) and there is a problem writing to the trace file; or if a trace needs to be loaded and there is a problem
+ * reading from the trace file.
  *
  * Since: 0.1.0
  */
