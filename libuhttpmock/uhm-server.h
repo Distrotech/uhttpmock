@@ -113,6 +113,8 @@ gboolean uhm_server_get_enable_logging (UhmServer *self);
 void uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging);
 
 void uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, goffset message_chunk_length, GError **error);
+void uhm_server_received_message_chunk_with_direction (UhmServer *self, char direction, const gchar *data, goffset data_length, GError **error);
+void uhm_server_received_message_chunk_from_soup (SoupLogger *logger, SoupLoggerLogLevel level, char direction, const char *data, gpointer user_data);
 
 const gchar *uhm_server_get_address (UhmServer *self);
 guint uhm_server_get_port (UhmServer *self);

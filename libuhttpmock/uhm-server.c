@@ -1675,6 +1675,10 @@ uhm_server_set_enable_logging (UhmServer *self, gboolean enable_logging)
  * comparison mode and the received message chunk corresponds to an unexpected message in the trace file, a %UHM_SERVER_ERROR will
  * be returned.
  *
+ * <note><para>In common cases where message log data only needs to be passed to a #UhmServer and not (for example) logged to an
+ * application-specific file or the command line as  well, it is simpler to use uhm_server_received_message_chunk_from_soup(), passing
+ * it directly to soup_logger_set_printer(). See the documentation for uhm_server_received_message_chunk_from_soup() for details.</para></note>
+ *
  * Since: 0.1.0
  */
 void
@@ -1797,6 +1801,99 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 			g_object_unref (online_message);
 		}
 	}
+}
+
+/**
+ * uhm_server_received_message_chunk_with_direction:
+ * @self: a #UhmServer
+ * @direction: single character indicating the direction of message transmission
+ * @data: single line of a message which was received
+ * @data_length: length of @data in bytes
+ * @error: (allow-none): return location for a #GError, or %NULL
+ *
+ * Convenience version of uhm_server_received_message_chunk() which takes the
+ * message @direction and @data separately, as provided by libsoup in a
+ * #SoupLoggerPrinter callback.
+ *
+ * <informalexample><programlisting>
+ * UhmServer *mock_server;
+ * SoupSession *session;
+ * SoupLogger *logger;
+ *
+ * static void
+ * soup_log_printer (SoupLogger *logger, SoupLoggerLogLevel level, char direction, const char *data, gpointer user_data)
+ * {
+ * 	/<!-- -->* Pass the data to libuhttpmock. *<!-- -->/
+ *	UhmServer *mock_server = UHM_SERVER (user_data);
+ * 	uhm_server_received_message_chunk_with_direction (mock_server, direction, data, strlen (data), NULL);
+ * }
+ *
+ * mock_server = uhm_server_new ();
+ * session = soup_session_new ();
+ *
+ * logger = soup_logger_new (SOUP_LOGGER_LOG_BODY, -1);
+ * soup_logger_set_printer (logger, (SoupLoggerPrinter) soup_log_printer, g_object_ref (mock_server), g_object_unref);
+ * soup_session_add_feature (session, SOUP_SESSION_FEATURE (logger));
+ * g_object_unref (logger);
+ *
+ * /<!-- -->* Do something with mock_server here. *<!-- -->/
+ * </programlisting></informalexample>
+ *
+ * Since: UNRELEASED
+ */
+void
+uhm_server_received_message_chunk_with_direction (UhmServer *self, char direction, const gchar *data, goffset data_length, GError **error)
+{
+	gchar *message_chunk;
+
+	g_return_if_fail (UHM_IS_SERVER (self));
+	g_return_if_fail (direction == '<' || direction == '>' || direction == ' ');
+	g_return_if_fail (data != NULL);
+	g_return_if_fail (data_length >= -1);
+	g_return_if_fail (error == NULL || *error == NULL);
+
+	/* This is inefficient and not nul-safe, but it’ll do for now. */
+	message_chunk = g_strdup_printf ("%c %s", direction, data);
+	uhm_server_received_message_chunk (self, message_chunk, (data_length > -1) ? data_length + 2 : -1, error);
+	g_free (message_chunk);
+}
+
+/**
+ * uhm_server_received_message_chunk_from_soup:
+ * @logger: a #SoupLogger
+ * @level: the detail level of this log message
+ * @direction: the transmission direction of the message
+ * @data: message data
+ * @user_data: (allow-none): user data passed to the #SoupLogger, or %NULL
+ *
+ * Convenience version of uhm_server_received_message_chunk() which can be passed directly to soup_logger_set_printer()
+ * to forward all libsoup traffic logging to a #UhmServer. The #UhmServer must be passed to soup_logger_set_printer() as
+ * its user data.
+ *
+ * <informalexample><programlisting>
+ * UhmServer *mock_server;
+ * SoupSession *session;
+ * SoupLogger *logger;
+ *
+ * mock_server = uhm_server_new ();
+ * session = soup_session_new ();
+ *
+ * logger = soup_logger_new (SOUP_LOGGER_LOG_BODY, -1);
+ * soup_logger_set_printer (logger, uhm_server_received_message_chunk_from_soup, g_object_ref (mock_server), g_object_unref);
+ * soup_session_add_feature (session, SOUP_SESSION_FEATURE (logger));
+ * g_object_unref (logger);
+ *
+ * /<!-- -->* Do something with mock_server here. *<!-- -->/
+ * </programlisting></informalexample>
+ *
+ * Since: UNRELEASED
+ */
+void
+uhm_server_received_message_chunk_from_soup (SoupLogger *logger, SoupLoggerLogLevel level, char direction, const char *data, gpointer user_data)
+{
+	/* Deliberately don’t do strict validation of parameters here, since we can’t be entirely sure what libsoup throws our way. */
+	UhmServer *mock_server = UHM_SERVER (user_data);
+	uhm_server_received_message_chunk_with_direction (mock_server, direction, data, strlen (data), NULL);
 }
 
 /**
