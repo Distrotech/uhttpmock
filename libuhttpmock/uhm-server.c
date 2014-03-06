@@ -1294,7 +1294,10 @@ void
 uhm_server_run (UhmServer *self)
 {
 	UhmServerPrivate *priv = self->priv;
-	struct sockaddr_in sock;
+	union {
+		struct sockaddr sock;
+		struct sockaddr_in in;
+	} sock;
 	SoupAddress *addr;
 	GMainContext *thread_context;
 
@@ -1304,11 +1307,11 @@ uhm_server_run (UhmServer *self)
 
 	/* Grab a loopback IP to use. */
 	memset (&sock, 0, sizeof (sock));
-	sock.sin_family = AF_INET;
-	sock.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
-	sock.sin_port = htons (0); /* random port */
+	sock.in.sin_family = AF_INET;
+	sock.in.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
+	sock.in.sin_port = htons (0); /* random port */
 
-	addr = soup_address_new_from_sockaddr ((struct sockaddr *) &sock, sizeof (sock));
+	addr = soup_address_new_from_sockaddr (&sock.sock, sizeof (sock));
 	g_assert (addr != NULL);
 
 	/* Set up the server. If (priv->tls_certificate != NULL) it will be a HTTPS server;
