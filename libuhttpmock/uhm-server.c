@@ -1373,7 +1373,7 @@ uhm_server_stop (UhmServer *self)
 	g_return_if_fail (priv->resolver != NULL);
 
 	/* Stop the server. */
-	soup_server_disconnect (priv->server);
+	soup_server_quit (priv->server);
 	g_thread_join (priv->server_thread);
 	priv->server_thread = NULL;
 	uhm_resolver_reset (priv->resolver);
