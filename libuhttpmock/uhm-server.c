@@ -85,10 +85,14 @@ struct _UhmServerPrivate {
 	/* UhmServer is based around HTTP/HTTPS, and cannot be extended to support other application-layer protocols.
 	 * If libuhttpmock is extended to support other protocols (e.g. IMAP) in future, a new UhmImapServer should be
 	 * created. It may be possible to share code with UhmServer, but the APIs for the two would be sufficiently
-	 * different to not be mergeable. */
+	 * different to not be mergeable.
+	 *
+	 * The SoupServer is *not* thread safe, so all calls to it must be marshalled through the server_context, which
+	 * it runs in. */
 	SoupServer *server;
 	UhmResolver *resolver;
 	GThread *server_thread;
+	GMainContext *server_context;
 
 	/* TLS certificate. */
 	GTlsCertificate *tls_certificate;
@@ -331,6 +335,7 @@ uhm_server_dispose (GObject *object)
 
 	g_clear_object (&priv->resolver);
 	g_clear_object (&priv->server);
+	g_clear_pointer (&priv->server_context, g_main_context_unref);
 	g_clear_object (&priv->input_stream);
 	g_clear_object (&priv->trace_file);
 	g_clear_object (&priv->input_stream);
@@ -1263,14 +1268,30 @@ uhm_server_load_trace_finish (UhmServer *self, GAsyncResult *result, GError **er
 	self->priv->received_message_state = UNKNOWN;
 }
 
+/* Must only be called in the server thread. */
+static gboolean
+server_thread_quit_cb (gpointer user_data)
+{
+	UhmServer *self = user_data;
+	UhmServerPrivate *priv = self->priv;
+
+	soup_server_quit (priv->server);
+
+	return G_SOURCE_REMOVE;
+}
+
 static gpointer
 server_thread_cb (gpointer user_data)
 {
 	UhmServer *self = user_data;
 	UhmServerPrivate *priv = self->priv;
 
-	/* Run the server. */
+	g_main_context_push_thread_default (priv->server_context);
+
+	/* Run the server. This will create a main loop and iterate the server_context until soup_server_quit() is called. */
 	soup_server_run (priv->server);
+
+	g_main_context_pop_thread_default (priv->server_context);
 
 	return NULL;
 }
@@ -1299,7 +1320,6 @@ uhm_server_run (UhmServer *self)
 		struct sockaddr_in in;
 	} sock;
 	SoupAddress *addr;
-	GMainContext *thread_context;
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (priv->resolver == NULL);
@@ -1316,15 +1336,14 @@ uhm_server_run (UhmServer *self)
 
 	/* Set up the server. If (priv->tls_certificate != NULL) it will be a HTTPS server;
 	 * otherwise it will be a HTTP server. */
-	thread_context = g_main_context_new ();
+	priv->server_context = g_main_context_new ();
 	priv->server = soup_server_new ("interface", addr,
 	                                "tls-certificate", priv->tls_certificate,
-	                                "async-context", thread_context,
+	                                "async-context", priv->server_context,
 	                                "raw-paths", TRUE,
 	                                NULL);
 	soup_server_add_handler (priv->server, "/", server_handler_cb, self, NULL);
 
-	g_main_context_unref (thread_context);
 	g_object_unref (addr);
 
 	/* Grab the randomly selected address and port. */
@@ -1367,17 +1386,22 @@ void
 uhm_server_stop (UhmServer *self)
 {
 	UhmServerPrivate *priv = self->priv;
+	GSource *idle;
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (priv->server != NULL);
 	g_return_if_fail (priv->resolver != NULL);
 
 	/* Stop the server. */
-	soup_server_quit (priv->server);
+	idle = g_idle_source_new ();
+	g_source_set_callback (idle, server_thread_quit_cb, self, NULL);
+	g_source_attach (idle, priv->server_context);
+
 	g_thread_join (priv->server_thread);
 	priv->server_thread = NULL;
 	uhm_resolver_reset (priv->resolver);
 
+	g_clear_pointer (&priv->server_context, g_main_context_unref);
 	g_clear_object (&priv->server);
 	g_clear_object (&priv->resolver);
 
