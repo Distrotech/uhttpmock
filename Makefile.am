@@ -181,7 +181,7 @@ DISTCHECK_CONFIGURE_FLAGS += --enable-gtk-doc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libuhttpmock/libuhttpmock-$(UHM_API_VERSION).pc
 
-CLEANFILES += $(pkgconfig_DATA)
+DISTCLEANFILES += $(pkgconfig_DATA)
 EXTRA_DIST += \
 	libuhttpmock/libuhttpmock.pc.in \
 	libuhttpmock/uhm-version.h.in \
