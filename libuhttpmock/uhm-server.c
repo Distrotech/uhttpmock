@@ -1866,7 +1866,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
  * /<!-- -->* Do something with mock_server here. *<!-- -->/
  * </programlisting></informalexample>
  *
- * Since: UNRELEASED
+ * Since: 0.3.0
  */
 void
 uhm_server_received_message_chunk_with_direction (UhmServer *self, char direction, const gchar *data, goffset data_length, GError **error)
@@ -1913,7 +1913,7 @@ uhm_server_received_message_chunk_with_direction (UhmServer *self, char directio
  * /<!-- -->* Do something with mock_server here. *<!-- -->/
  * </programlisting></informalexample>
  *
- * Since: UNRELEASED
+ * Since: 0.3.0
  */
 void
 uhm_server_received_message_chunk_from_soup (SoupLogger *logger, SoupLoggerLogLevel level, char direction, const char *data, gpointer user_data)
@@ -2099,7 +2099,7 @@ apply_expected_domain_names (UhmServer *self)
  * It is safe to add further domain names to the #UhmResolver in a callback for the #GObject::notify signal for #UhmServer:resolver;
  * that signal is emitted after the resolver is cleared and these @domain_names are added.
  *
- * Since: UNRELEASED
+ * Since: 0.3.0
  */
 void
 uhm_server_set_expected_domain_names (UhmServer *self, const gchar * const *domain_names)

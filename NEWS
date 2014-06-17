@@ -2,12 +2,18 @@ Overview of changes from uhttpmock 0.2.0 to uhttpmock 0.3.0
 ===========================================================
 
 Major changes:
+ • Drop useless gthread dependency
+ • Thread safety fixes
 
 API changes:
+ • Add uhm_server_set_expected_domain_names()
+ • Add uhm_server_received_message_chunk_with_direction(),
+   uhm_server_received_message_chunk_from_soup()
 
 Bugs fixed:
+ • Bug 1026764 — Review Request: uhttpmock - HTTP web service mocking library
+ • Bug 731040 — libgdata-0.14.3 tests fail
 
-Updated translations:
 
 Overview of changes from uhttpmock 0.1.0 to uhttpmock 0.2.0
 ===========================================================
@@ -17,6 +23,7 @@ Major changes:
    to allow for parallel installation of different versions
  • Rename VAPI file similarly
  • Install header files in a versioned directory
+
 
 Initial release of uhttpmock 0.1.0
 ==================================
