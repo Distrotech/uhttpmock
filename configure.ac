@@ -65,6 +65,14 @@ AC_SUBST([UHM_PACKAGES])
 
 PKG_CHECK_MODULES(UHM, [$UHM_PACKAGES])
 
+# libsoup 2.47.3 is needed for the new SoupServer API.
+PKG_CHECK_MODULES([LIBSOUP], [libsoup-2.4 >= 2.47.3],
+                  [have_libsoup_2_47_3=yes], [have_libsoup_2_47_3=no])
+AS_IF([test "x$have_libsoup_2_47_3" = "xyes"], [
+	AC_DEFINE([HAVE_LIBSOUP_2_47_3], [1],
+	          [Define if the new SoupServer API is available])
+])
+
 # Code coverage
 GNOME_CODE_COVERAGE
 

@@ -45,6 +45,8 @@
  * Since: 0.1.0
  */
 
+#include "config.h"
+
 #include <glib.h>
 #include <glib/gi18n.h>
 #include <libsoup/soup.h>
@@ -93,12 +95,20 @@ struct _UhmServerPrivate {
 	UhmResolver *resolver;
 	GThread *server_thread;
 	GMainContext *server_context;
+#ifdef HAVE_LIBSOUP_2_47_3
+	GMainLoop *server_main_loop;
+#endif
 
 	/* TLS certificate. */
 	GTlsCertificate *tls_certificate;
 
 	/* Server interface. */
-	SoupAddress *address; /* unowned */
+#ifdef HAVE_LIBSOUP_2_47_3
+	GSocketAddress *address;  /* owned */
+	gchar *address_string;  /* owned; cache */
+#else
+	SoupAddress *address; /* owned */
+#endif
 	guint port;
 
 	/* Expected resolver domain names. */
@@ -377,11 +387,7 @@ uhm_server_get_property (GObject *object, guint property_id, GValue *value, GPar
 			g_value_set_boolean (value, priv->enable_logging);
 			break;
 		case PROP_ADDRESS:
-			if (priv->address == NULL) {
-				g_value_set_string (value, NULL);
-			} else {
-				g_value_set_string (value, soup_address_get_physical (priv->address));
-			}
+			g_value_set_string (value, uhm_server_get_address (UHM_SERVER (object)));
 			break;
 		case PROP_PORT:
 			g_value_set_uint (value, priv->port);
@@ -449,7 +455,16 @@ build_base_uri (UhmServer *self)
 	SoupURI *base_uri;
 
 	if (priv->enable_online == FALSE) {
+#ifdef HAVE_LIBSOUP_2_47_3
+		GSList *uris;  /* owned */
+		uris = soup_server_get_uris (priv->server);
+		if (uris == NULL) {
+			return NULL;
+		}
+		base_uri_string = soup_uri_to_string (uris->data, FALSE);
+#else
 		base_uri_string = g_strdup_printf ("https://%s:%u", soup_address_get_physical (self->priv->address), self->priv->port);
+#endif
 	} else {
 		base_uri_string = g_strdup ("https://localhost"); /* arbitrary */
 	}
@@ -1275,7 +1290,11 @@ server_thread_quit_cb (gpointer user_data)
 	UhmServer *self = user_data;
 	UhmServerPrivate *priv = self->priv;
 
+#ifdef HAVE_LIBSOUP_2_47_3
+	g_main_loop_quit (priv->server_main_loop);
+#else
 	soup_server_quit (priv->server);
+#endif
 
 	return G_SOURCE_REMOVE;
 }
@@ -1289,7 +1308,11 @@ server_thread_cb (gpointer user_data)
 	g_main_context_push_thread_default (priv->server_context);
 
 	/* Run the server. This will create a main loop and iterate the server_context until soup_server_quit() is called. */
+#ifdef HAVE_LIBSOUP_2_47_3
+	g_main_loop_run (priv->server_main_loop);
+#else
 	soup_server_run (priv->server);
+#endif
 
 	g_main_context_pop_thread_default (priv->server_context);
 
@@ -1315,16 +1338,19 @@ void
 uhm_server_run (UhmServer *self)
 {
 	UhmServerPrivate *priv = self->priv;
+#ifndef HAVE_LIBSOUP_2_47_3
 	union {
 		struct sockaddr sock;
 		struct sockaddr_in in;
 	} sock;
 	SoupAddress *addr;
+#endif
 
 	g_return_if_fail (UHM_IS_SERVER (self));
 	g_return_if_fail (priv->resolver == NULL);
 	g_return_if_fail (priv->server == NULL);
 
+#ifndef HAVE_LIBSOUP_2_47_3
 	/* Grab a loopback IP to use. */
 	memset (&sock, 0, sizeof (sock));
 	sock.in.sin_family = AF_INET;
@@ -1333,22 +1359,60 @@ uhm_server_run (UhmServer *self)
 
 	addr = soup_address_new_from_sockaddr (&sock.sock, sizeof (sock));
 	g_assert (addr != NULL);
+#endif
 
 	/* Set up the server. If (priv->tls_certificate != NULL) it will be a HTTPS server;
 	 * otherwise it will be a HTTP server. */
 	priv->server_context = g_main_context_new ();
-	priv->server = soup_server_new ("interface", addr,
-	                                "tls-certificate", priv->tls_certificate,
-	                                "async-context", priv->server_context,
+	priv->server = soup_server_new ("tls-certificate", priv->tls_certificate,
 	                                "raw-paths", TRUE,
+#ifndef HAVE_LIBSOUP_2_47_3
+	                                "async-context", priv->server_context,
+	                                "interface", addr,
+#endif
 	                                NULL);
 	soup_server_add_handler (priv->server, "/", server_handler_cb, self, NULL);
 
+#ifndef HAVE_LIBSOUP_2_47_3
 	g_object_unref (addr);
+#endif
+
+#ifdef HAVE_LIBSOUP_2_47_3
+{
+	GError *error = NULL;
+
+	g_main_context_push_thread_default (priv->server_context);
+
+	priv->server_main_loop = g_main_loop_new (priv->server_context, FALSE);
+	soup_server_listen_local (priv->server, 0, SOUP_SERVER_LISTEN_HTTPS,
+	                          &error);
+	g_assert_no_error (error);  /* binding to localhost should never really fail */
+
+	g_main_context_pop_thread_default (priv->server_context);
+}
+#endif
 
 	/* Grab the randomly selected address and port. */
-	priv->address = soup_socket_get_local_address (soup_server_get_listener (priv->server));
+#ifdef HAVE_LIBSOUP_2_47_3
+{
+	GSList *sockets;  /* owned */
+	GSocket *socket;
+	GError *error = NULL;
+
+	sockets = soup_server_get_listeners (priv->server);
+	g_assert (sockets != NULL);
+
+	socket = sockets->data;
+	priv->address = g_object_ref (g_socket_get_local_address (socket, &error));
+	g_assert_no_error (error);
+	priv->port = g_inet_socket_address_get_port (G_INET_SOCKET_ADDRESS (priv->address));
+
+	g_slist_free (sockets);
+}
+#else
+	priv->address = g_object_ref (soup_socket_get_local_address (soup_server_get_listener (priv->server)));
 	priv->port = soup_server_get_port (priv->server);
+#endif
 
 	/* Set up the resolver. It is expected that callers will grab the resolver (by calling uhm_server_get_resolver())
 	 * immediately after this function returns, and add some expected hostnames by calling uhm_resolver_add_A() one or
@@ -1401,11 +1465,18 @@ uhm_server_stop (UhmServer *self)
 	priv->server_thread = NULL;
 	uhm_resolver_reset (priv->resolver);
 
+#ifdef HAVE_LIBSOUP_2_47_3
+	g_clear_pointer (&priv->server_main_loop, g_main_loop_unref);
+#endif
 	g_clear_pointer (&priv->server_context, g_main_context_unref);
 	g_clear_object (&priv->server);
 	g_clear_object (&priv->resolver);
 
-	priv->address = NULL;
+	g_clear_object (&priv->address);
+#ifdef HAVE_LIBSOUP_2_47_3
+	g_free (priv->address_string);
+	priv->address_string = NULL;
+#endif
 	priv->port = 0;
 
 	g_object_freeze_notify (G_OBJECT (self));
@@ -1942,7 +2013,18 @@ uhm_server_get_address (UhmServer *self)
 		return NULL;
 	}
 
+#ifdef HAVE_LIBSOUP_2_47_3
+{
+	GInetAddress *addr;
+
+	g_free (self->priv->address_string);
+	addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (self->priv->address));
+	self->priv->address_string = g_inet_address_to_string (addr);
+	return self->priv->address_string;
+}
+#else
 	return soup_address_get_physical (self->priv->address);
+#endif
 }
 
 /**
