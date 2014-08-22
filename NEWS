@@ -1,3 +1,10 @@
+Overview of changes from uhttpmock 0.3.0 to uhttpmock 0.3.1
+===========================================================
+
+Major changes:
+ • Add optional support for libsoup ≥ 2.47.3
+
+
 Overview of changes from uhttpmock 0.2.0 to uhttpmock 0.3.0
 ===========================================================
 
