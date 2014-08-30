@@ -1636,6 +1636,7 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file, GError **error)
 			g_error_free (child_error);
 
 			uhm_server_stop (self);
+			g_clear_object (&priv->output_stream);
 
 			return;
 		}
@@ -1649,6 +1650,8 @@ uhm_server_start_trace_full (UhmServer *self, GFile *trace_file, GError **error)
 			g_free (trace_file_path);
 
 			g_error_free (child_error);
+
+			g_clear_object (&priv->output_stream);
 
 			return;
 		}
