@@ -78,8 +78,8 @@ static void server_handler_cb (SoupServer *server, SoupMessage *message, const g
 static void load_file_stream_thread_cb (GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
 static void load_file_iteration_thread_cb (GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable);
 
-static GFileInputStream *load_file_stream (GFile *trace_file, GCancellable *cancellable, GError **error);
-static SoupMessage *load_file_iteration (GFileInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error);
+static GDataInputStream *load_file_stream (GFile *trace_file, GCancellable *cancellable, GError **error);
+static SoupMessage *load_file_iteration (GDataInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error);
 
 static void apply_expected_domain_names (UhmServer *self);
 
@@ -115,7 +115,7 @@ struct _UhmServerPrivate {
 	gchar **expected_domain_names;
 
 	GFile *trace_file;
-	GFileInputStream *input_stream;
+	GDataInputStream *input_stream;
 	GFileOutputStream *output_stream;
 	SoupMessage *next_message;
 	guint message_counter; /* ID of the message within the current trace file */
@@ -435,7 +435,7 @@ uhm_server_set_property (GObject *object, guint property_id, const GValue *value
 }
 
 typedef struct {
-	GFileInputStream *input_stream;
+	GDataInputStream *input_stream;
 	SoupURI *base_uri;
 } LoadFileIterationData;
 
@@ -956,53 +956,56 @@ error:
 	return NULL;
 }
 
-static GFileInputStream *
+static GDataInputStream *
 load_file_stream (GFile *trace_file, GCancellable *cancellable, GError **error)
 {
-	return g_file_read (trace_file, cancellable, error);
+	GFileInputStream *base_stream = NULL;  /* owned */
+	GDataInputStream *data_stream = NULL;  /* owned */
+
+	base_stream = g_file_read (trace_file, cancellable, error);
+
+	data_stream = g_data_input_stream_new (G_INPUT_STREAM (base_stream));
+	g_data_input_stream_set_byte_order (data_stream, G_DATA_STREAM_BYTE_ORDER_LITTLE_ENDIAN);
+	g_data_input_stream_set_newline_type (data_stream, G_DATA_STREAM_NEWLINE_TYPE_LF);
+
+	g_object_unref (base_stream);
+
+	return data_stream;
 }
 
 static gboolean
-load_message_half (GFileInputStream *input_stream, GString *current_message, gchar half_direction, GCancellable *cancellable, GError **error)
+load_message_half (GDataInputStream *input_stream, GString *current_message, GCancellable *cancellable, GError **error)
 {
-	guint8 buf[1024];
-	gssize len;
+	gsize len;
+	gchar *line = NULL;  /* owned */
+	GError *child_error = NULL;
 
 	while (TRUE) {
-		len = g_input_stream_read (G_INPUT_STREAM (input_stream), buf, sizeof (buf), cancellable, error);
+		line = g_data_input_stream_read_line (input_stream, &len, cancellable, &child_error);
 
-		if (len == -1) {
+		if (line == NULL && child_error != NULL) {
 			/* Error. */
+			g_propagate_error (error, child_error);
 			return FALSE;
-		} else if (len == 0) {
+		} else if (line == NULL) {
 			/* EOF. Try again to grab a response. */
 			return TRUE;
 		} else {
-			const guint8 *i;
+			gboolean reached_eom;
 
-			/* Got some data. Parse it and see if we've reached the end of a message (i.e. read both the request and the response). */
-			for (i = memchr (buf, half_direction, sizeof (buf)); i != NULL; i = memchr (i + 1, half_direction, buf + sizeof (buf) - i)) {
-				if (*(i + 1) == ' ' && (i == buf || (i > buf && *(i - 1) == '\n'))) {
-					/* Found the boundary between request and response.
-					 * Fall through to try and find the boundary between this response and the next request.
-					 * To make things simpler, seek back to the boundary and make a second read request below. */
-					if (g_seekable_seek (G_SEEKABLE (input_stream), i - (buf + len), G_SEEK_CUR, cancellable, error) == FALSE) {
-						/* Error. */
-						return FALSE;
-					}
+			reached_eom = (g_strcmp0 (line, "  ") == 0);
 
-					g_string_append_len (current_message, (gchar *) buf, i - buf);
+			g_string_append_len (current_message, line, len);
+			g_string_append_c (current_message, '\n');
 
-					return TRUE;
-				}
+			g_free (line);
+
+			if (reached_eom) {
+				/* Reached the end of the message. */
+				return TRUE;
 			}
-
-			/* Reached the end of the buffer without finding a change in message. Loop around and load another buffer-full. */
-			g_string_append_len (current_message, (gchar *) buf, len);
 		}
 	}
-
-	return TRUE;
 }
 
 /* Returns TRUE iff the given message from a trace file should be ignored and not used by the mock server. */
@@ -1029,7 +1032,7 @@ should_ignore_soup_message (SoupMessage *message)
 }
 
 static SoupMessage *
-load_file_iteration (GFileInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error)
+load_file_iteration (GDataInputStream *input_stream, SoupURI *base_uri, GCancellable *cancellable, GError **error)
 {
 	SoupMessage *output_message = NULL;
 	GString *current_message = NULL;
@@ -1040,9 +1043,9 @@ load_file_iteration (GFileInputStream *input_stream, SoupURI *base_uri, GCancell
 		/* Start loading from the stream. */
 		g_string_truncate (current_message, 0);
 
-		/* We should be at the start of a request (>). Search for the start of the response (<), then for the start of the next request (>). */
-		if (load_message_half (input_stream, current_message, '<', cancellable, error) == FALSE ||
-		    load_message_half (input_stream, current_message, '>', cancellable, error) == FALSE) {
+		/* We should be at the start of a request; grab it. */
+		if (!load_message_half (input_stream, current_message, cancellable, error) ||
+		    !load_message_half (input_stream, current_message, cancellable, error)) {
 			goto done;
 		}
 
@@ -1068,7 +1071,7 @@ static void
 load_file_stream_thread_cb (GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable)
 {
 	GFile *trace_file;
-	GFileInputStream *input_stream;
+	GDataInputStream *input_stream;
 	GError *child_error = NULL;
 
 	trace_file = task_data;
@@ -1087,13 +1090,13 @@ static void
 load_file_iteration_thread_cb (GTask *task, gpointer source_object, gpointer task_data, GCancellable *cancellable)
 {
 	LoadFileIterationData *data = task_data;
-	GFileInputStream *input_stream;
+	GDataInputStream *input_stream;
 	SoupMessage *output_message;
 	SoupURI *base_uri;
 	GError *child_error = NULL;
 
 	input_stream = data->input_stream;
-	g_assert (G_IS_FILE_INPUT_STREAM (input_stream));
+	g_assert (G_IS_DATA_INPUT_STREAM (input_stream));
 	base_uri = data->base_uri;
 
 	output_message = load_file_iteration (input_stream, base_uri, cancellable, &child_error);
