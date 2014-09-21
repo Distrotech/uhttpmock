@@ -462,6 +462,7 @@ build_base_uri (UhmServer *self)
 			return NULL;
 		}
 		base_uri_string = soup_uri_to_string (uris->data, FALSE);
+		g_slist_free_full (uris, (GDestroyNotify) soup_uri_free);
 #else
 		base_uri_string = g_strdup_printf ("https://%s:%u", soup_address_get_physical (self->priv->address), self->priv->port);
 #endif
@@ -940,6 +941,8 @@ trace_to_soup_message (const gchar *trace, SoupURI *base_uri)
 
 	soup_message_set_status_full (message, response_status, response_message);
 
+	g_free (response_message);
+
 	/* Parse the response headers and body. */
 	if (trace_to_soup_message_headers_and_body (message->response_headers, message->response_body, '<', &trace) == FALSE) {
 		goto error;
@@ -1403,7 +1406,7 @@ uhm_server_run (UhmServer *self)
 	g_assert (sockets != NULL);
 
 	socket = sockets->data;
-	priv->address = g_object_ref (g_socket_get_local_address (socket, &error));
+	priv->address = g_socket_get_local_address (socket, &error);
 	g_assert_no_error (error);
 	priv->port = g_inet_socket_address_get_port (G_INET_SOCKET_ADDRESS (priv->address));
 
@@ -1460,6 +1463,7 @@ uhm_server_stop (UhmServer *self)
 	idle = g_idle_source_new ();
 	g_source_set_callback (idle, server_thread_quit_cb, self, NULL);
 	g_source_attach (idle, priv->server_context);
+	g_source_unref (idle);
 
 	g_thread_join (priv->server_thread);
 	priv->server_thread = NULL;
