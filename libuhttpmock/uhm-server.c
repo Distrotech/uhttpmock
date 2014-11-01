@@ -1873,7 +1873,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 		 * files to be (pretty much) ASCII. File uploads are handled by zero-extending the responses according
 		 * to the traced Content-Length. */
 		g_byte_array_append (priv->comparison_message, (const guint8 *) message_chunk, message_chunk_length);
-		g_byte_array_append (priv->comparison_message, (const guint8 *) '\n', 1);
+		g_byte_array_append (priv->comparison_message, (const guint8 *) "\n", 1);
 
 		if (strcmp (message_chunk, "  ") == 0) {
 			/* Received the last chunk of the response, so compare the message from the trace file and that from online. */
