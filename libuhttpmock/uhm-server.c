@@ -1875,7 +1875,7 @@ uhm_server_received_message_chunk (UhmServer *self, const gchar *message_chunk, 
 		g_byte_array_append (priv->comparison_message, (const guint8 *) message_chunk, message_chunk_length);
 		g_byte_array_append (priv->comparison_message, (const guint8 *) "\n", 1);
 
-		if (strcmp (message_chunk, "  ") == 0) {
+		if (priv->received_message_state == RESPONSE_TERMINATOR) {
 			/* Received the last chunk of the response, so compare the message from the trace file and that from online. */
 			SoupMessage *online_message;
 			SoupURI *base_uri;
