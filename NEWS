@@ -1,3 +1,11 @@
+Overview of changes from uhttpmock 0.3.1 to uhttpmock 0.3.2
+===========================================================
+
+Major changes:
+ • Fix some memory leaks
+ • Rearchitect trace file parsing to correctly handle buffer boundaries
+
+
 Overview of changes from uhttpmock 0.3.0 to uhttpmock 0.3.1
 ===========================================================
 
