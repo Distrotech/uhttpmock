@@ -1,3 +1,10 @@
+Overview of changes from uhttpmock 0.3.2 to uhttpmock 0.3.3
+===========================================================
+
+Major changes:
+ • Fix comparison mode
+
+
 Overview of changes from uhttpmock 0.3.1 to uhttpmock 0.3.2
 ===========================================================
 
