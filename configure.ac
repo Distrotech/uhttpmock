@@ -11,6 +11,7 @@ m4_define(uhm_api_version_minor, 0)
 
 AC_INIT([uhttpmock],[uhm_version_major.uhm_version_minor.uhm_version_micro],[mailto:bugzilla@tecnocode.co.uk],[uhttpmock],[http://gitorious.org/uhttpmock/pages/Home])
 
+AX_CHECK_ENABLE_DEBUG
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([libuhttpmock/uhm.h])
@@ -77,7 +78,6 @@ AS_IF([test "x$have_libsoup_2_47_3" = "xyes"], [
 AX_CODE_COVERAGE
 
 # General GNOME macros
-GNOME_DEBUG_CHECK
 GNOME_COMPILE_WARNINGS([maximum])
 GNOME_MAINTAINER_MODE_DEFINES
 
