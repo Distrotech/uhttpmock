@@ -10,8 +10,9 @@ m4_define(uhm_api_version_major, 0)
 m4_define(uhm_api_version_minor, 0)
 
 AC_INIT([uhttpmock],[uhm_version_major.uhm_version_minor.uhm_version_micro],[mailto:bugzilla@tecnocode.co.uk],[uhttpmock],[http://gitorious.org/uhttpmock/pages/Home])
+AX_IS_RELEASE([git-directory])
 
-AX_CHECK_ENABLE_DEBUG
+AX_CHECK_ENABLE_DEBUG(,,,[$ax_is_release])s
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([libuhttpmock/uhm.h])
@@ -78,7 +79,7 @@ AS_IF([test "x$have_libsoup_2_47_3" = "xyes"], [
 AX_CODE_COVERAGE
 
 # General macros
-AX_COMPILER_FLAGS
+AX_COMPILER_FLAGS([WARN_CFLAGS],[WARN_LDFLAGS],[$ax_is_release])
 
 GOBJECT_INTROSPECTION_CHECK([0.9.7])
 
