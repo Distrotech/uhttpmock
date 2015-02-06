@@ -141,7 +141,7 @@ endif
 endif
 
 # Code coverage
-@GNOME_CODE_COVERAGE_RULES@
+@CODE_COVERAGE_RULES@
 CODE_COVERAGE_DIRECTORY = $(top_builddir)/libuhttpmock
 CODE_COVERAGE_LCOV_OPTIONS = --base-directory $(abs_top_srcdir)
 
