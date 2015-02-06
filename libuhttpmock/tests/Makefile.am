@@ -12,6 +12,9 @@ AM_CFLAGS = \
 	$(WARN_CFLAGS) \
 	$(UHM_CFLAGS) \
 	$(NULL)
+AM_LDFLAGS = \
+	$(WARN_LDFLAGS) \
+	$(NULL)
 
 LIBS = \
 	$(top_builddir)/libuhttpmock/libuhttpmock-@UHM_API_VERSION@.la \

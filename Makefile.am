@@ -62,6 +62,7 @@ libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_LIBADD = \
 	$(NULL)
 
 libuhttpmock_libuhttpmock_@UHM_API_VERSION@_la_LDFLAGS = \
+	$(WARN_LDFLAGS) \
 	-version-info $(UHM_LT_VERSION) \
 	-export-symbols $(srcdir)/libuhttpmock/libuhttpmock.symbols \
 	-no-undefined \

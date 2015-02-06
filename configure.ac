@@ -77,8 +77,8 @@ AS_IF([test "x$have_libsoup_2_47_3" = "xyes"], [
 # Code coverage
 AX_CODE_COVERAGE
 
-# General GNOME macros
-GNOME_COMPILE_WARNINGS([maximum])
+# General macros
+AX_COMPILER_FLAGS
 GNOME_MAINTAINER_MODE_DEFINES
 
 GOBJECT_INTROSPECTION_CHECK([0.9.7])
