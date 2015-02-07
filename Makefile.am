@@ -125,7 +125,7 @@ libuhttpmock/libuhttpmock-@UHM_API_VERSION@.vapi: libuhttpmock/Uhm-@UHM_API_VERS
 
 VAPIGEN_VAPIS = libuhttpmock/libuhttpmock-@UHM_API_VERSION@.vapi
 
-libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_DEPS = libxml-2.0 libsoup-2.4
+libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_DEPS = libxml-2.0 libsoup-2.4 gio-2.0
 libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_METADATADIRS = $(srcdir)/libuhttpmock
 libuhttpmock_libuhttpmock_@UHM_API_VERSION_U@_vapi_FILES = libuhttpmock/Uhm-@UHM_API_VERSION@.gir
 
