@@ -505,7 +505,7 @@ server_logging_trace_success_multiple_messages_cb (LoggingData *data)
 	SoupMessage *message;
 	SoupURI *uri;
 	guint i;
-	SoupKnownStatusCode expected_status_codes[] = {
+	SoupStatus expected_status_codes[] = {
 		SOUP_STATUS_OK,
 		SOUP_STATUS_OK,
 		SOUP_STATUS_NOT_FOUND,
