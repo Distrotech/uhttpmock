@@ -12,7 +12,7 @@ m4_define(uhm_api_version_minor, 0)
 AC_INIT([uhttpmock],[uhm_version_major.uhm_version_minor.uhm_version_micro],[mailto:bugzilla@tecnocode.co.uk],[uhttpmock],[http://gitorious.org/uhttpmock/pages/Home])
 AX_IS_RELEASE([git-directory])
 
-AX_CHECK_ENABLE_DEBUG(,,,[$ax_is_release])s
+AX_CHECK_ENABLE_DEBUG(,,,[$ax_is_release])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([libuhttpmock/uhm.h])
