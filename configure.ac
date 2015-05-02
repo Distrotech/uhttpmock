@@ -9,7 +9,7 @@ m4_define(uhm_version_micro, 0)
 m4_define(uhm_api_version_major, 0)
 m4_define(uhm_api_version_minor, 0)
 
-AC_INIT([uhttpmock],[uhm_version_major.uhm_version_minor.uhm_version_micro],[mailto:bugzilla@tecnocode.co.uk],[uhttpmock],[http://gitorious.org/uhttpmock/pages/Home])
+AC_INIT([uhttpmock],[uhm_version_major.uhm_version_minor.uhm_version_micro],[mailto:bugzilla@tecnocode.co.uk],[uhttpmock],[https://gitlab.com/groups/uhttpmock])
 AX_IS_RELEASE([git-directory])
 
 AX_CHECK_ENABLE_DEBUG(,,,[$ax_is_release])
